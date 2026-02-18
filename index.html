@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עולם של תמונות</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-purple-pink">
+
+    <!-- Background Decorations -->
+    <div class="bg-decorations" id="bgDecorations"></div>
+
+    <!-- Site Navigation -->
+    <nav class="site-nav">
+        <a href="index.html" class="nav-link active">גלריה</a>
+        <a href="games.html" class="nav-link">משחקים</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <img src="logos/logo.png" alt="עולם של תמונות" class="logo">
+            <h1 class="site-title">עולם של תמונות</h1>
+        </div>
+        <div class="theme-switcher">
+            <span class="theme-label">בחרי ערכת צבעים:</span>
+            <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד">
+                <span class="color-dot purple"></span>
+                <span class="color-dot pink"></span>
+            </button>
+            <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן">
+                <span class="color-dot black"></span>
+                <span class="color-dot white"></span>
+            </button>
+            <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק">
+                <span class="color-dot yellow"></span>
+                <span class="color-dot green"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="חפשי תמונה...">
+        <span class="search-icon">&#128269;</span>
+        <span class="search-clear" id="searchClear">&times;</span>
+    </div>
+
+    <!-- Category Navigation -->
+    <nav class="category-nav">
+        <button class="category-btn active" data-category="all">הכל</button>
+        <button class="category-btn" data-category="manga">מנגה</button>
+        <button class="category-btn" data-category="landscape">נוף</button>
+        <button class="category-btn" data-category="animals">חיות</button>
+        <button class="category-btn" data-category="food">מאכלים</button>
+        <button class="category-btn" data-category="drawing">ציור</button>
+    </nav>
+
+    <!-- No Results Message -->
+    <div class="no-results" id="noResults">לא נמצאו תמונות לחיפוש הזה</div>
+
+    <!-- Gallery -->
+    <main class="gallery" id="gallery">
+        <!-- Manga -->
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/4795d435-3200-48ba-9009-e0dd4abeaa64.jpg" alt="תלמידה יפנית" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">תלמידה יפנית</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/a298b71e-8574-4221-8b66-43ddb485d432.jpg" alt="לוחם ברק" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">לוחם ברק</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/e8773eb1-f05c-44a4-912c-931638c1692d.jpg" alt="פריחת האביב" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פריחת האביב</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Anime-Girl.png" alt="שושנת פריחה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שושנת פריחה</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Anime-Girl-upright-version.jpg" alt="בת קסומה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">בת קסומה</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Lineart-du-portrait-Manga-de-Stephane-Belgrand-Rou.jpg" alt="ילד אומץ" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ילד אומץ</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Manga-drawing-made-by-a-kid.jpg" alt="דרגון בול גיבור" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">דרגון בול גיבור</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Anime-girl-at-beach.jpg" alt="נערה אנימה בחוף" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נערה אנימה בחוף</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Anime-girl-publicdomainq.png" alt="אנימה נערה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">אנימה נערה</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Umeko.jpeg" alt="ציור מנגה - Umeko" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור מנגה - Umeko</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="manga">
+            <img src="images/manga/Manga-technique-Drawing-Belgotaku-01.jpg" alt="ציור מנגה - Taken" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור מנגה - Taken</span>
+                <span class="item-category">מנגה</span>
+            </div>
+        </div>
+
+        <!-- Landscape -->
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/06862343-cc4d-45d2-ae7e-ebf418852d7f.jpg" alt="שחר על הרים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שחר על הרים</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/338bec61-35a8-461c-85fb-adf0335b6329.jpg" alt="שקיעה בהרים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שקיעה בהרים</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/470a2fcc-2e90-4416-acdb-2daa55889db4.jpg" alt="שקיעה הררית שלווה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שקיעה הררית שלווה</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/7e5a99a3-7581-4ef6-a857-9722db4c8de1.jpg" alt="שקיעה בהרים 2" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שקיעה בהרים 2</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/d8fdc818-815e-44ec-9404-cd6364d223e6.jpg" alt="עמק ירוק בשקיעה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">עמק ירוק בשקיעה</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/angelus-lake-nz.jpg" alt="בקתה באגם ההרים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">בקתה באגם ההרים</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/zagedan-mountains.jpg" alt="אגמי הרי הקווקז" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">אגמי הרי הקווקז</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Blushing-Peaks,-Shadow-Mountain-Lake-Sunrise,-CO-8-29-12-(80.jpg" alt="פסגות זוהרות באגם ההרים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פסגות זוהרות באגם ההרים</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Nature-along-the-Arizona-National-Scenic-Trail-411.jpg" alt="שביל נופי בטבע" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שביל נופי בטבע</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Chepino-Valley-Landscape.jpg" alt="נוף עמק ירוק" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף עמק ירוק</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Beautiful-waterfall-holly-river-West-Virginia.jpg" alt="יפה מפל מים נהר" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">יפה מפל מים נהר</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Beautiful-forest-and-waterfall.jpg" alt="נוף - Good" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף - Good</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Beech-Forest-AU-Great-Otway-National-Park-Beaucham.jpg" alt="שמורת יערות נסתרת" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שמורת יערות נסתרת</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="landscape">
+            <img src="images/landscape/Hampi-India-Rocky-landscape-of-Hampi-Granite-rocks.jpg" alt="נוף גבעה שקיעה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף גבעה שקיעה</span>
+                <span class="item-category">נוף</span>
+            </div>
+        </div>
+
+        <!-- Animals -->
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/11fda52c-ab19-45fc-b594-28fbf0d01427.jpg" alt="חתול ג'ינג'י ליד החלון" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתול ג'ינג'י ליד החלון</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/3c5a54f7-7a84-46b6-9a3d-7543b47c9cac.jpg" alt="חתול זהוב" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתול זהוב</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/5e1ce1c4-db65-421f-94fa-a9cb694755e7.jpg" alt="חתולים ורדים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתולים ורדים</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/75f6c89e-e3e4-4e1b-a58e-47c744b5f46a.jpg" alt="שני חתולים יפים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שני חתולים יפים</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/tabby-cat-portrait.jpg" alt="חתול מנומר" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתול מנומר</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/cat-in-snow.jpg" alt="חתול בשלג" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתול בשלג</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/Colorful,-parrot,-bird-cage,-air-mattress-Fortepan-19356.jpg" alt="צמד ציפורים בכלוב" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">צמד ציפורים בכלוב</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/Baby-bunny-41938387635.jpg" alt="ארנבון חמוד" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ארנבון חמוד</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/A-focused-kitten-Pixabay.jpg" alt="חתלתול כחול עיניים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתלתול כחול עיניים</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/A-seemingly-innocent-kitten-Pixabay.jpg" alt="חתלתול חמוד" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חתלתול חמוד</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/Baby-bunny-rabbit.jpg" alt="חיה - Young" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">חיה - Young</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/Free-baby-bunny-41299604190.jpg" alt="תינוק ארנבון" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">תינוק ארנבון</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="animals">
+            <img src="images/animals/A-butterfly-hovers-above-a-beautiful-flower..jpg" alt="פרפר יפה פרח" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פרפר יפה פרח</span>
+                <span class="item-category">חיות</span>
+            </div>
+        </div>
+
+        <!-- Food -->
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/5915d36c-bff1-440c-8087-e38d0c2bfba4.jpg" alt="שייק ורדים וקרח" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שייק ורדים וקרח</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/6eac2c8a-953a-4804-998f-757d9a228214.jpg" alt="לימונדה ורודה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">לימונדה ורודה</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/74fb4a44-82bf-4d18-8df8-d74612483684.jpg" alt="קוקטייל פטל ונענע" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">קוקטייל פטל ונענע</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Gemini_Generated_Image_zg5n3bzg5n3bzg5n.png" alt="פאי תפוחים חם" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פאי תפוחים חם</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Gemini_Generated_Image_7z7lt67z7lt67z7l.png" alt="דובדבנים טריים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">דובדבנים טריים</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/chocolate-cake.jpg" alt="עוגת שוקולד" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">עוגת שוקולד</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/lemon-cake.jpg" alt="עוגת לימון" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">עוגת לימון</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Birthday-cake-1,-the-Napa-Rose,-Disneyland,-Anaheim,-Califor.jpg" alt="עוגת יום הולדת" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">עוגת יום הולדת</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Mixed-Dry-Fruit-Kheer-Home-Chandigarh-India.jpg" alt="קינוח פירות הודי" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">קינוח פירות הודי</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Allens-1948-book-of-berries-1948-17947708712.jpg" alt="פירות יער" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פירות יער</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Allens-80th-book-of-berries-1965-17947549952.jpg" alt="נוף פירות יער איור" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף פירות יער איור</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Chocolate-dirty-pastry-buns.jpg" alt="שוקולד מאפה" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">שוקולד מאפה</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="food">
+            <img src="images/food/Allens-book-of-berries-1952-17924941756.jpg" alt="נוף פירות יער איור 2" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף פירות יער איור 2</span>
+                <span class="item-category">מאכלים</span>
+            </div>
+        </div>
+
+        <!-- Drawing -->
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/97_e86941a6-c25e-4ab9-95b5-a3397cc43151.webp" alt="ציור דובדבנים" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור דובדבנים</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/black-flowers-watercolor.jpg" alt="פרחים שחורים באקוורל" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">פרחים שחורים באקוורל</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/Abstract-watercolor-painting-on-paper-Abstract-Lan.png" alt="ציור מופשט אקוורל" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור מופשט אקוורל</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/Albert-Bierstadt-Among-the-Sierra-Nevada-Califor.jpg" alt="אמנות" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">אמנות</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/Flower-bud-watercolor.jpg" alt="ציור אקוורל רישום" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור אקוורל רישום</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/The-art-of-painting-in-the-nineteenth-century-1908.jpg" alt="ציור אמנות נוף" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">ציור אמנות נוף</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+        <div class="gallery-item" data-category="drawing">
+            <img src="images/drawing/Hendrik-Voogd-Italian-landscape-with-Umbrella-Pi.jpg" alt="נוף" loading="lazy">
+            <div class="item-overlay">
+                <span class="item-title">נוף</span>
+                <span class="item-category">ציור</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">✕</button>
+            <img src="" alt="" class="modal-image" id="modalImage">
+            <div class="modal-actions">
+                <button class="action-btn" id="btnCopy">
+                    <span class="action-icon">📋</span>
+                    <span>העתקה</span>
+                </button>
+                <button class="action-btn" id="btnDownload">
+                    <span class="action-icon">⬇️</span>
+                    <span>הורדה</span>
+                </button>
+                <button class="action-btn" id="btnPrint">
+                    <span class="action-icon">🖨️</span>
+                    <span>הדפסה</span>
+                </button>
+            </div>
+            <div class="modal-toast" id="modalToast">הועתק בהצלחה!</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>עולם של תמונות &copy; 2026 | נבנה באהבה 💗</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

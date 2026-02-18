@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחקים - עולם של תמונות</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .games-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .games-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .game-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px var(--shadow-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            border: 1.5px solid var(--border-color);
+        }
+
+        .game-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px var(--shadow-color);
+        }
+
+        .game-card-image {
+            width: 100%;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            background: var(--header-bg);
+        }
+
+        .game-card-body {
+            padding: 18px;
+        }
+
+        .game-card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .game-card-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .game-card-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--accent-1);
+            color: white;
+        }
+
+        .coming-soon .game-card-image {
+            opacity: 0.5;
+        }
+
+        .coming-soon .game-card-badge {
+            background: var(--text-secondary);
+        }
+
+        .coming-soon {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="theme-purple-pink">
+
+    <!-- Background Decorations -->
+    <div class="bg-decorations" id="bgDecorations"></div>
+
+    <!-- Site Navigation -->
+    <nav class="site-nav">
+        <a href="index.html" class="nav-link">גלריה</a>
+        <a href="games.html" class="nav-link active">משחקים</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <img src="logos/logo.png" alt="עולם של תמונות" class="logo">
+            <h1 class="site-title">עולם של תמונות</h1>
+        </div>
+        <div class="theme-switcher">
+            <span class="theme-label">בחרי ערכת צבעים:</span>
+            <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד">
+                <span class="color-dot purple"></span>
+                <span class="color-dot pink"></span>
+            </button>
+            <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן">
+                <span class="color-dot black"></span>
+                <span class="color-dot white"></span>
+            </button>
+            <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק">
+                <span class="color-dot yellow"></span>
+                <span class="color-dot green"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Games -->
+    <div class="games-container">
+        <h2 class="games-title">🎮 משחקים</h2>
+
+        <div class="games-grid">
+            <a href="flappy.html" class="game-card">
+                <div class="game-card-image">🐦</div>
+                <div class="game-card-body">
+                    <div class="game-card-title">הציפור המעופפת</div>
+                    <div class="game-card-desc">בחרי דמות חמודה ועופי בין המכשולים! כמה רחוק תגיעי?</div>
+                    <span class="game-card-badge">שחקי עכשיו</span>
+                </div>
+            </a>
+
+            <a href="memory.html" class="game-card">
+                <div class="game-card-image">🃏</div>
+                <div class="game-card-body">
+                    <div class="game-card-title">משחק זיכרון</div>
+                    <div class="game-card-desc">הפכי קלפים ומצאי זוגות תואמים! כמה מהלכים תצטרכי?</div>
+                    <span class="game-card-badge">שחקי עכשיו</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>עולם של תמונות &copy; 2026 | נבנה באהבה 💗</p>
+    </footer>
+
+    <script>
+        // Background decorations (same as main page)
+        function createDecorations() {
+            const container = document.getElementById('bgDecorations');
+            container.innerHTML = '';
+            for (let i = 0; i < 24; i++) {
+                const isCherry = i % 2 === 0;
+                const el = document.createElement('div');
+                el.className = 'bg-deco ' + (isCherry ? 'bg-cherry' : 'bg-bow');
+                el.style.cssText = 'left:' + (Math.random()*100) + '%;top:' + (Math.random()*100) + '%;width:' + (55+Math.random()*45) + 'px;height:' + (55+Math.random()*45) + 'px;opacity:' + (0.09+Math.random()*0.08) + ';transform:rotate(' + (Math.random()*360) + 'deg)';
+                if (isCherry) {
+                    el.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>';
+                } else {
+                    el.innerHTML = '<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';
+                }
+                container.appendChild(el);
+            }
+        }
+        createDecorations();
+
+        // Theme switching
+        const themeBtns = document.querySelectorAll('.theme-btn');
+        const savedTheme = localStorage.getItem('selectedTheme') || 'theme-purple-pink';
+        document.body.className = savedTheme;
+        themeBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                document.body.className = theme;
+                localStorage.setItem('selectedTheme', theme);
+                themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+            });
+        });
+    </script>
+</body>
+</html>

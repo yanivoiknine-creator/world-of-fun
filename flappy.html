@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הציפור המעופפת - עולם של תמונות</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            min-height: calc(100vh - 200px);
+        }
+
+        .game-back {
+            align-self: flex-start;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            transition: color 0.2s;
+        }
+
+        .game-back:hover {
+            color: var(--accent-1);
+        }
+
+        #gameCanvas {
+            border-radius: 16px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            cursor: pointer;
+            max-width: 100%;
+            touch-action: manipulation;
+        }
+
+        .game-score-display {
+            margin-top: 12px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .game-score-display span {
+            font-weight: 700;
+            color: var(--accent-1);
+        }
+
+        .game-hint {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body class="theme-purple-pink">
+
+    <!-- Background Decorations -->
+    <div class="bg-decorations" id="bgDecorations"></div>
+
+    <!-- Site Navigation -->
+    <nav class="site-nav">
+        <a href="index.html" class="nav-link">גלריה</a>
+        <a href="games.html" class="nav-link active">משחקים</a>
+    </nav>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-content">
+            <img src="logos/logo.png" alt="עולם של תמונות" class="logo">
+            <h1 class="site-title">עולם של תמונות</h1>
+        </div>
+        <div class="theme-switcher">
+            <span class="theme-label">בחרי ערכת צבעים:</span>
+            <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד">
+                <span class="color-dot purple"></span>
+                <span class="color-dot pink"></span>
+            </button>
+            <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן">
+                <span class="color-dot black"></span>
+                <span class="color-dot white"></span>
+            </button>
+            <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק">
+                <span class="color-dot yellow"></span>
+                <span class="color-dot green"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="game-wrapper">
+        <a href="games.html" class="game-back">&#8592; חזרה למשחקים</a>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div class="game-score-display">ניקוד: <span id="scoreDisplay">0</span> | שיא: <span id="highScoreDisplay">0</span></div>
+        <div class="game-hint">השתמשי בחיצים למעלה ⬆️ ולמטה ⬇️ כדי לנווט בין הצינורות</div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>עולם של תמונות &copy; 2026 | נבנה באהבה 💗</p>
+    </footer>
+
+    <script>
+        // ===== Background & Theme (shared) =====
+        (function() {
+            const container = document.getElementById('bgDecorations');
+            for (let i = 0; i < 24; i++) {
+                const isCherry = i % 2 === 0;
+                const el = document.createElement('div');
+                el.className = 'bg-deco ' + (isCherry ? 'bg-cherry' : 'bg-bow');
+                el.style.cssText = 'left:' + (Math.random()*100) + '%;top:' + (Math.random()*100) + '%;width:' + (55+Math.random()*45) + 'px;height:' + (55+Math.random()*45) + 'px;opacity:' + (0.09+Math.random()*0.08) + ';transform:rotate(' + (Math.random()*360) + 'deg)';
+                if (isCherry) {
+                    el.innerHTML = '<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>';
+                } else {
+                    el.innerHTML = '<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';
+                }
+                container.appendChild(el);
+            }
+            const themeBtns = document.querySelectorAll('.theme-btn');
+            const savedTheme = localStorage.getItem('selectedTheme') || 'theme-purple-pink';
+            document.body.className = savedTheme;
+            themeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+                btn.addEventListener('click', () => {
+                    const theme = btn.dataset.theme;
+                    document.body.className = theme;
+                    localStorage.setItem('selectedTheme', theme);
+                    themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+                });
+            });
+        })();
+
+        // ===== FLAPPY BIRD GAME =====
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // === Characters ===
+        const characters = [
+            { name: 'ציפורה', emoji: '🐦', color: '#4fc3f7' },
+            { name: 'חתולי', emoji: '🐱', color: '#ffb74d' },
+            { name: 'פרפרית', emoji: '🦋', color: '#ce93d8' },
+            { name: 'דובי', emoji: '🐻', color: '#8D6E63' },
+            { name: 'לבבית', emoji: '💖', color: '#f48fb1' },
+            { name: 'דובדבנים', emoji: '🍒', color: '#e53935' },
+        ];
+
+        // === Game State ===
+        let gameState = 'select'; // 'select', 'ready', 'playing', 'gameover'
+        let selectedChar = 0;
+        let hoverChar = -1;
+
+        // Bird
+        let birdY = 0;
+        const birdX = 80;
+        const birdSize = 40;
+        const birdSpeed = 4.5;
+        let keysPressed = { up: false, down: false };
+
+        // Pipes
+        let pipes = [];
+        const pipeWidth = 58;
+        const pipeGap = 165;
+        const pipeSpeed = 2.2;
+        let pipeTimer = 0;
+        const pipeInterval = 100;
+
+        // Score
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('flappyHighScore') || '0');
+
+        // Clouds
+        let clouds = [];
+        for (let i = 0; i < 5; i++) {
+            clouds.push({
+                x: Math.random() * canvas.width,
+                y: 30 + Math.random() * 150,
+                size: 30 + Math.random() * 40,
+                speed: 0.3 + Math.random() * 0.4,
+            });
+        }
+
+        // Ground
+        let groundOffset = 0;
+        const groundHeight = 60;
+
+        // Animation
+        let wingAngle = 0;
+        let frameCount = 0;
+
+        // === Drawing Functions ===
+        function drawBackground() {
+            // Sky gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height - groundHeight);
+            skyGrad.addColorStop(0, '#87CEEB');
+            skyGrad.addColorStop(0.6, '#B0E0FF');
+            skyGrad.addColorStop(1, '#E8F5E9');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height - groundHeight);
+
+            // Clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            clouds.forEach(cloud => {
+                ctx.beginPath();
+                ctx.arc(cloud.x, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 0.4, cloud.y - cloud.size * 0.15, cloud.size * 0.4, 0, Math.PI * 2);
+                ctx.arc(cloud.x + cloud.size * 0.8, cloud.y, cloud.size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Ground
+            const groundGrad = ctx.createLinearGradient(0, canvas.height - groundHeight, 0, canvas.height);
+            groundGrad.addColorStop(0, '#8BC34A');
+            groundGrad.addColorStop(0.3, '#689F38');
+            groundGrad.addColorStop(1, '#558B2F');
+            ctx.fillStyle = groundGrad;
+            ctx.fillRect(0, canvas.height - groundHeight, canvas.width, groundHeight);
+
+            // Ground stripe
+            ctx.fillStyle = '#9CCC65';
+            for (let i = -1; i < canvas.width / 30 + 1; i++) {
+                const x = (i * 30 + groundOffset) % (canvas.width + 30) - 15;
+                ctx.beginPath();
+                ctx.moveTo(x, canvas.height - groundHeight);
+                ctx.lineTo(x + 15, canvas.height - groundHeight);
+                ctx.lineTo(x + 7.5, canvas.height - groundHeight + 8);
+                ctx.fill();
+            }
+        }
+
+        function drawPipe(pipe) {
+            const topHeight = pipe.topHeight;
+            const bottomY = topHeight + pipeGap;
+
+            // Top pipe
+            const topGrad = ctx.createLinearGradient(pipe.x, 0, pipe.x + pipeWidth, 0);
+            topGrad.addColorStop(0, '#43A047');
+            topGrad.addColorStop(0.5, '#66BB6A');
+            topGrad.addColorStop(1, '#388E3C');
+            ctx.fillStyle = topGrad;
+            ctx.fillRect(pipe.x, 0, pipeWidth, topHeight);
+
+            // Top pipe cap
+            ctx.fillStyle = '#2E7D32';
+            ctx.fillRect(pipe.x - 4, topHeight - 24, pipeWidth + 8, 24);
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(pipe.x - 4, topHeight - 24, pipeWidth + 8, 4);
+
+            // Bottom pipe
+            ctx.fillStyle = topGrad;
+            ctx.fillRect(pipe.x, bottomY, pipeWidth, canvas.height - bottomY - groundHeight);
+
+            // Bottom pipe cap
+            ctx.fillStyle = '#2E7D32';
+            ctx.fillRect(pipe.x - 4, bottomY, pipeWidth + 8, 24);
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(pipe.x - 4, bottomY, pipeWidth + 8, 4);
+        }
+
+        function drawBird() {
+            const char = characters[selectedChar];
+            ctx.save();
+            ctx.translate(birdX, birdY);
+
+            // Slight tilt based on movement direction
+            let angle = 0;
+            if (keysPressed.up) angle = -15 * (Math.PI / 180);
+            else if (keysPressed.down) angle = 15 * (Math.PI / 180);
+            ctx.rotate(angle);
+
+            // Mirror horizontally so character faces flight direction
+            ctx.scale(-1, 1);
+
+            // Character emoji
+            ctx.font = birdSize + 'px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(char.emoji, 0, 0);
+
+            ctx.restore();
+        }
+
+        function drawScore() {
+            // Score background
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.roundRect(canvas.width / 2 - 40, 12, 80, 42, 12);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 30px "Segoe UI", Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(score, canvas.width / 2, 33);
+        }
+
+        // === Character Selection Screen ===
+        function drawSelectScreen() {
+            drawBackground();
+
+            // Title
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.beginPath();
+            ctx.roundRect(30, 30, canvas.width - 60, 70, 16);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 28px "Segoe UI", Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🐦 הציפור המעופפת 🐦', canvas.width / 2, 72);
+
+            // Subtitle
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(60, 115, canvas.width - 120, 36, 10);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '18px "Segoe UI", Arial';
+            ctx.fillText('בחרי דמות:', canvas.width / 2, 136);
+
+            // Character grid (2 rows x 3 cols)
+            const cols = 3;
+            const cardW = 100;
+            const cardH = 110;
+            const startX = (canvas.width - cols * cardW - (cols - 1) * 12) / 2;
+            const startY = 170;
+
+            characters.forEach((char, i) => {
+                const col = i % cols;
+                const row = Math.floor(i / cols);
+                const x = startX + col * (cardW + 12);
+                const y = startY + row * (cardH + 12);
+
+                const isSelected = i === selectedChar;
+                const isHover = i === hoverChar;
+
+                // Card background - darker for better visibility
+                if (isSelected) {
+                    ctx.fillStyle = 'rgba(40, 40, 80, 0.92)';
+                    ctx.strokeStyle = char.color;
+                    ctx.lineWidth = 3;
+                } else if (isHover) {
+                    ctx.fillStyle = 'rgba(50, 50, 90, 0.85)';
+                    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                    ctx.lineWidth = 2;
+                } else {
+                    ctx.fillStyle = 'rgba(30, 30, 60, 0.75)';
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 1;
+                }
+
+                ctx.beginPath();
+                ctx.roundRect(x, y, cardW, cardH, 14);
+                ctx.fill();
+                ctx.stroke();
+
+                if (isSelected) {
+                    ctx.fillStyle = char.color + '40';
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, cardW, cardH, 14);
+                    ctx.fill();
+                }
+
+                // Emoji - larger for visibility
+                ctx.font = '44px serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000';
+                ctx.fillText(char.emoji, x + cardW / 2, y + 48);
+
+                // Name - white on dark background
+                ctx.font = 'bold 14px "Segoe UI", Arial';
+                ctx.fillStyle = isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.85)';
+                ctx.fillText(char.name, x + cardW / 2, y + 85);
+
+                // Checkmark for selected
+                if (isSelected) {
+                    ctx.fillStyle = char.color;
+                    ctx.beginPath();
+                    ctx.arc(x + cardW - 14, y + 14, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#FFF';
+                    ctx.font = 'bold 13px Arial';
+                    ctx.fillText('✓', x + cardW - 14, y + 18);
+                }
+
+                // Store bounds for click detection
+                char._bounds = { x, y, w: cardW, h: cardH };
+            });
+
+            // Play button
+            const btnW = 200;
+            const btnH = 52;
+            const btnX = (canvas.width - btnW) / 2;
+            const btnY = 430;
+
+            const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
+            btnGrad.addColorStop(0, '#66BB6A');
+            btnGrad.addColorStop(1, '#43A047');
+            ctx.fillStyle = btnGrad;
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH, 26);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 22px "Segoe UI", Arial';
+            ctx.fillText('🎮  התחילי לשחק!', canvas.width / 2, btnY + 30);
+
+            // Store button bounds
+            canvas._playBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
+
+            // High score
+            if (highScore > 0) {
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.roundRect(canvas.width / 2 - 70, 500, 140, 32, 10);
+                ctx.fill();
+                ctx.fillStyle = '#FFF';
+                ctx.font = '15px "Segoe UI", Arial';
+                ctx.fillText('🏆 שיא: ' + highScore, canvas.width / 2, 519);
+            }
+        }
+
+        // === Ready Screen ===
+        function drawReadyScreen() {
+            drawBackground();
+            drawBird();
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.beginPath();
+            ctx.roundRect(canvas.width / 2 - 110, canvas.height / 2 - 60, 220, 80, 16);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 22px "Segoe UI", Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⬆️ למעלה  ⬇️ למטה', canvas.width / 2, canvas.height / 2 - 28);
+
+            ctx.font = '16px "Segoe UI", Arial';
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fillText('חיצי מקלדת / מגע', canvas.width / 2, canvas.height / 2);
+        }
+
+        // === Game Over Screen ===
+        function drawGameOver() {
+            // Darken
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Panel
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.beginPath();
+            ctx.roundRect(canvas.width / 2 - 130, canvas.height / 2 - 120, 260, 240, 20);
+            ctx.fill();
+
+            ctx.fillStyle = '#e53935';
+            ctx.font = 'bold 28px "Segoe UI", Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('סוף המשחק!', canvas.width / 2, canvas.height / 2 - 75);
+
+            // Character
+            ctx.font = '48px serif';
+            ctx.fillText(characters[selectedChar].emoji, canvas.width / 2, canvas.height / 2 - 25);
+
+            // Score
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 20px "Segoe UI", Arial';
+            ctx.fillText('ניקוד: ' + score, canvas.width / 2, canvas.height / 2 + 20);
+
+            // High score
+            if (score >= highScore && score > 0) {
+                ctx.fillStyle = '#FF9800';
+                ctx.font = 'bold 18px "Segoe UI", Arial';
+                ctx.fillText('🏆 שיא חדש! 🏆', canvas.width / 2, canvas.height / 2 + 48);
+            } else {
+                ctx.fillStyle = '#777';
+                ctx.font = '16px "Segoe UI", Arial';
+                ctx.fillText('שיא: ' + highScore, canvas.width / 2, canvas.height / 2 + 48);
+            }
+
+            // Retry button
+            const btnW = 180;
+            const btnH = 44;
+            const btnX = (canvas.width - btnW) / 2;
+            const btnY = canvas.height / 2 + 70;
+
+            const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
+            btnGrad.addColorStop(0, '#42A5F5');
+            btnGrad.addColorStop(1, '#1E88E5');
+            ctx.fillStyle = btnGrad;
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH, 22);
+            ctx.fill();
+
+            ctx.fillStyle = '#FFF';
+            ctx.font = 'bold 18px "Segoe UI", Arial';
+            ctx.fillText('🔄 שחקי שוב', canvas.width / 2, btnY + 26);
+
+            canvas._retryBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
+
+            // Back to select
+            ctx.fillStyle = '#999';
+            ctx.font = '14px "Segoe UI", Arial';
+            ctx.fillText('לחצי ESC לבחירת דמות', canvas.width / 2, btnY + 68);
+        }
+
+        // === Game Logic ===
+        function resetGame() {
+            birdY = canvas.height / 2 - 50;
+            keysPressed = { up: false, down: false };
+            pipes = [];
+            pipeTimer = 60;
+            score = 0;
+            groundOffset = 0;
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('highScoreDisplay').textContent = highScore;
+        }
+
+        function checkCollision() {
+            // Pipes only (boundaries are clamped, not deadly)
+            for (const pipe of pipes) {
+                if (birdX + birdSize / 2.5 > pipe.x && birdX - birdSize / 2.5 < pipe.x + pipeWidth) {
+                    if (birdY - birdSize / 2.5 < pipe.topHeight || birdY + birdSize / 2.5 > pipe.topHeight + pipeGap) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function update() {
+            frameCount++;
+            wingAngle = Math.sin(frameCount * 0.15) * 0.3;
+
+            // Move clouds
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.size < 0) {
+                    cloud.x = canvas.width + cloud.size;
+                    cloud.y = 30 + Math.random() * 150;
+                }
+            });
+
+            if (gameState !== 'playing') return;
+
+            // Bird movement (arrow keys / touch)
+            if (keysPressed.up) birdY -= birdSpeed;
+            if (keysPressed.down) birdY += birdSpeed;
+
+            // Clamp within play area
+            const minY = birdSize / 2;
+            const maxY = canvas.height - groundHeight - birdSize / 2;
+            if (birdY < minY) birdY = minY;
+            if (birdY > maxY) birdY = maxY;
+
+            // Ground scrolling
+            groundOffset = (groundOffset - pipeSpeed) % 30;
+
+            // Pipes
+            pipeTimer++;
+            if (pipeTimer >= pipeInterval) {
+                pipeTimer = 0;
+                const minTop = 60;
+                const maxTop = canvas.height - groundHeight - pipeGap - 60;
+                const topHeight = minTop + Math.random() * (maxTop - minTop);
+                pipes.push({ x: canvas.width, topHeight, scored: false });
+            }
+
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].x -= pipeSpeed;
+
+                // Score
+                if (!pipes[i].scored && pipes[i].x + pipeWidth < birdX) {
+                    pipes[i].scored = true;
+                    score++;
+                    updateScoreDisplay();
+                }
+
+                // Remove off-screen
+                if (pipes[i].x + pipeWidth < -10) {
+                    pipes.splice(i, 1);
+                }
+            }
+
+            // Collision
+            if (checkCollision()) {
+                gameState = 'gameover';
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('flappyHighScore', highScore.toString());
+                }
+                updateScoreDisplay();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'select') {
+                drawSelectScreen();
+                return;
+            }
+
+            drawBackground();
+            pipes.forEach(drawPipe);
+            drawBird();
+
+            if (gameState === 'ready') {
+                drawReadyScreen();
+            } else if (gameState === 'playing') {
+                drawScore();
+            } else if (gameState === 'gameover') {
+                drawBird();
+                drawScore();
+                drawGameOver();
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // === Input ===
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY,
+            };
+        }
+
+        function handleClick(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+
+            if (gameState === 'select') {
+                // Check character clicks
+                for (let i = 0; i < characters.length; i++) {
+                    const b = characters[i]._bounds;
+                    if (b && pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h) {
+                        selectedChar = i;
+                        return;
+                    }
+                }
+
+                // Check play button
+                const pb = canvas._playBtn;
+                if (pb && pos.x >= pb.x && pos.x <= pb.x + pb.w && pos.y >= pb.y && pos.y <= pb.y + pb.h) {
+                    gameState = 'ready';
+                    resetGame();
+                    return;
+                }
+                return;
+            }
+
+            if (gameState === 'ready') {
+                gameState = 'playing';
+                return;
+            }
+
+            if (gameState === 'gameover') {
+                const rb = canvas._retryBtn;
+                if (rb && pos.x >= rb.x && pos.x <= rb.x + rb.w && pos.y >= rb.y && pos.y <= rb.y + rb.h) {
+                    gameState = 'ready';
+                    resetGame();
+                    return;
+                }
+                return;
+            }
+        }
+
+        // Touch controls: top half = up, bottom half = down
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const pos = getCanvasPos(e);
+
+            // Let click handler deal with menus
+            if (gameState === 'select' || gameState === 'gameover') {
+                handleClick(e);
+                return;
+            }
+
+            if (gameState === 'ready') {
+                gameState = 'playing';
+            }
+
+            if (gameState === 'playing') {
+                if (pos.y < canvas.height / 2) {
+                    keysPressed.up = true;
+                    keysPressed.down = false;
+                } else {
+                    keysPressed.down = true;
+                    keysPressed.up = false;
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            keysPressed.up = false;
+            keysPressed.down = false;
+        }
+
+        function handleMouseMove(e) {
+            if (gameState !== 'select') {
+                hoverChar = -1;
+                return;
+            }
+            const pos = getCanvasPos(e);
+            hoverChar = -1;
+            for (let i = 0; i < characters.length; i++) {
+                const b = characters[i]._bounds;
+                if (b && pos.x >= b.x && pos.x <= b.x + b.w && pos.y >= b.y && pos.y <= b.y + b.h) {
+                    hoverChar = i;
+                    canvas.style.cursor = 'pointer';
+                    return;
+                }
+            }
+            const pb = canvas._playBtn;
+            if (pb && pos.x >= pb.x && pos.x <= pb.x + pb.w && pos.y >= pb.y && pos.y <= pb.y + pb.h) {
+                canvas.style.cursor = 'pointer';
+                return;
+            }
+            canvas.style.cursor = 'default';
+        }
+
+        canvas.addEventListener('click', handleClick);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+        canvas.addEventListener('mousemove', handleMouseMove);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                if (gameState === 'ready') {
+                    gameState = 'playing';
+                }
+                if (gameState === 'playing') {
+                    keysPressed.up = true;
+                }
+            }
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                e.preventDefault();
+                if (gameState === 'ready') {
+                    gameState = 'playing';
+                }
+                if (gameState === 'playing') {
+                    keysPressed.down = true;
+                }
+            }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (gameState === 'select') {
+                    gameState = 'ready';
+                    resetGame();
+                } else if (gameState === 'ready') {
+                    gameState = 'playing';
+                } else if (gameState === 'gameover') {
+                    gameState = 'ready';
+                    resetGame();
+                }
+            }
+            if (e.code === 'Escape') {
+                gameState = 'select';
+                keysPressed = { up: false, down: false };
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                keysPressed.up = false;
+            }
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                keysPressed.down = false;
+            }
+        });
+
+        // === Start ===
+        updateScoreDisplay();
+        resetGame();
+        gameLoop();
+    </script>
+</body>
+</html>
