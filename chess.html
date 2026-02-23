@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שחמט - עולם של כייף</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-wrap { max-width: 580px; margin: 0 auto; padding: 20px 14px; position: relative; z-index: 1; }
+        .game-h { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 8px; }
+        .player-strip {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 7px 12px; border-radius: 10px; border: 1.5px solid var(--border-color);
+            margin-bottom: 6px; background: var(--bg-card); font-size: 0.9rem;
+        }
+        .player-strip.active { border-color: var(--accent-1); background: var(--bg-secondary); font-weight: 600; }
+        .captured { font-size: 0.95rem; min-height: 22px; letter-spacing: 1px; }
+        .status-bar {
+            text-align: center; padding: 7px 20px; border-radius: 20px;
+            font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;
+            background: var(--bg-secondary); color: var(--text-primary);
+        }
+        .status-bar.check { background: #ff9800; color: white; }
+        .status-bar.end { background: #388e3c; color: white; font-size: 1rem; }
+        .status-bar.draw { background: #757575; color: white; }
+        .board-wrap { border: 3px solid var(--accent-1); border-radius: 8px; overflow: hidden; max-width: 480px; margin: 0 auto; }
+        .board { display: grid; grid-template-columns: repeat(8, 1fr); aspect-ratio: 1; }
+        .cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: clamp(1.3rem, 4.5vw, 2rem); cursor: pointer;
+            user-select: none; position: relative; transition: background 0.1s;
+        }
+        .cell.light { background: #f0d9b5; }
+        .cell.dark { background: #b58863; }
+        .cell.sel { background: #7fc97f !important; }
+        .cell.valid::after {
+            content: ''; position: absolute;
+            width: 32%; height: 32%; border-radius: 50%; background: rgba(0,140,0,0.4);
+            pointer-events: none;
+        }
+        .cell.valid.ep { background: rgba(100,200,100,0.4) !important; }
+        .cell.valid.occ { box-shadow: inset 0 0 0 4px rgba(0,140,0,0.6); }
+        .cell.valid.occ::after { display: none; }
+        .cell.in-check { background: #ff5252 !important; }
+        .cell.last-from { background: rgba(200,200,0,0.35) !important; }
+        .cell.last-to { background: rgba(200,200,0,0.55) !important; }
+        .coords-row { display: flex; max-width: 480px; margin: 2px auto 0; }
+        .coord { flex:1; text-align:center; font-size: 0.65rem; color: var(--text-secondary); }
+        .controls { display: flex; gap: 10px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+        .ctrl-btn {
+            padding: 9px 22px; border-radius: 10px; border: 1.5px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem;
+            font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: var(--btn-active); color: white; border-color: var(--btn-active); }
+        .back-lnk { display: block; text-align: center; margin-top: 12px; color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; }
+        .back-lnk:hover { color: var(--accent-1); }
+        .promo-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 200; align-items: center; justify-content: center;
+        }
+        .promo-overlay.show { display: flex; }
+        .promo-box {
+            background: var(--modal-bg); padding: 24px 28px; border-radius: 16px;
+            text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .promo-box h3 { color: var(--text-primary); margin-bottom: 16px; font-size: 1.1rem; }
+        .promo-pieces { display: flex; gap: 12px; }
+        .promo-btn {
+            font-size: 2.8rem; padding: 10px; border-radius: 10px;
+            border: 2px solid var(--border-color); background: var(--bg-secondary);
+            cursor: pointer; transition: all 0.2s; line-height: 1;
+        }
+        .promo-btn:hover { background: var(--accent-1); border-color: var(--accent-1); transform: scale(1.1); }
+    </style>
+</head>
+<body class="theme-purple-pink">
+    <div class="bg-decorations" id="bgDecorations"></div>
+    <nav class="site-nav">
+        <a href="index.html" class="nav-link">גלריה</a>
+        <a href="games.html" class="nav-link active">משחקים</a>
+        <a href="drawing.html" class="nav-link">ציור</a>
+    </nav>
+    <header class="site-header">
+        <div class="header-content">
+            <img src="logos/logo.png" alt="עולם של כייף" class="logo">
+            <h1 class="site-title">עולם של כייף</h1>
+        </div>
+        <div class="theme-switcher">
+            <span class="theme-label">בחרי ערכת צבעים:</span>
+            <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד"><span class="color-dot purple"></span><span class="color-dot pink"></span></button>
+            <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן"><span class="color-dot black"></span><span class="color-dot white"></span></button>
+            <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק"><span class="color-dot yellow"></span><span class="color-dot green"></span></button>
+        </div>
+    </header>
+
+    <div class="game-wrap">
+        <h2 class="game-h">♟ שחמט</h2>
+        <div class="player-strip" id="stripB">
+            <span>⬛ שחור</span>
+            <span class="captured" id="capB"></span>
+        </div>
+        <div class="status-bar" id="statusBar">תור לבן לשחק</div>
+        <div class="board-wrap"><div class="board" id="board"></div></div>
+        <div class="coords-row">
+            <div class="coord">א</div><div class="coord">ב</div><div class="coord">ג</div>
+            <div class="coord">ד</div><div class="coord">ה</div><div class="coord">ו</div>
+            <div class="coord">ז</div><div class="coord">ח</div>
+        </div>
+        <div class="player-strip" id="stripW">
+            <span>⬜ לבן</span>
+            <span class="captured" id="capW"></span>
+        </div>
+        <div class="controls">
+            <button class="ctrl-btn" onclick="newGame()">משחק חדש</button>
+        </div>
+        <a href="games.html" class="back-lnk">← חזרה למשחקים</a>
+    </div>
+
+    <!-- Promotion dialog -->
+    <div class="promo-overlay" id="promoOverlay">
+        <div class="promo-box">
+            <h3>בחרי כלי לקידום הרגלית:</h3>
+            <div class="promo-pieces">
+                <button class="promo-btn" data-p="Q">♛</button>
+                <button class="promo-btn" data-p="R">♜</button>
+                <button class="promo-btn" data-p="B">♝</button>
+                <button class="promo-btn" data-p="N">♞</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme & decorations
+        (function(){
+            const t=localStorage.getItem('selectedTheme')||'theme-purple-pink';
+            document.body.className=t;
+            document.querySelectorAll('.theme-btn').forEach(b=>{
+                b.classList.toggle('active',b.dataset.theme===t);
+                b.addEventListener('click',()=>{document.body.className=b.dataset.theme;localStorage.setItem('selectedTheme',b.dataset.theme);document.querySelectorAll('.theme-btn').forEach(x=>x.classList.toggle('active',x.dataset.theme===b.dataset.theme));});
+            });
+            const c=document.getElementById('bgDecorations');c.innerHTML='';
+            for(let i=0;i<14;i++){const e=document.createElement('div');e.className='bg-deco '+(i%2===0?'bg-cherry':'bg-bow');e.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(55+Math.random()*40)+'px;height:'+(55+Math.random()*40)+'px;opacity:'+(0.07+Math.random()*0.06)+';transform:rotate('+(Math.random()*360)+'deg)';e.innerHTML=i%2===0?'<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>':'<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';c.appendChild(e);}
+        })();
+
+        // ===== CHESS ENGINE =====
+        const UNI = {
+            WK:'♔',WQ:'♕',WR:'♖',WB:'♗',WN:'♘',WP:'♙',
+            BK:'♚',BQ:'♛',BR:'♜',BB:'♝',BN:'♞',BP:'♟'
+        };
+        const VALS = {P:1,N:3,B:3,R:5,Q:9,K:0};
+
+        let board, turn, sel, validMoves, castling, ep, lastMove, captured, pendingPromo, gameOver;
+
+        function newGame() {
+            board = [
+                ['BR','BN','BB','BQ','BK','BB','BN','BR'],
+                ['BP','BP','BP','BP','BP','BP','BP','BP'],
+                [null,null,null,null,null,null,null,null],
+                [null,null,null,null,null,null,null,null],
+                [null,null,null,null,null,null,null,null],
+                [null,null,null,null,null,null,null,null],
+                ['WP','WP','WP','WP','WP','WP','WP','WP'],
+                ['WR','WN','WB','WQ','WK','WB','WN','WR']
+            ];
+            turn='W'; sel=null; validMoves=[]; ep=null; lastMove=null; gameOver=false;
+            captured={W:[],B:[]};
+            castling={W:{k:true,q:true},B:{k:true,q:true}};
+            pendingPromo=null;
+            render(); updateStatus();
+        }
+
+        function col(p){ return p?p[0]:null; }
+        function ib(r,c){ return r>=0&&r<8&&c>=0&&c<8; }
+
+        // Raw moves (no check filter)
+        function rawMoves(r,c,bd,ep_,cast) {
+            const p=bd[r][c]; if(!p) return [];
+            const cl=col(p), opp=cl==='W'?'B':'W', t=p[1];
+            const ms=[];
+            const add=(r2,c2)=>{ if(ib(r2,c2)&&col(bd[r2][c2])!==cl) ms.push([r2,c2]); };
+            const slide=(dirs)=>{ for(const[dr,dc]of dirs){for(let i=1;i<8;i++){const r2=r+dr*i,c2=c+dc*i;if(!ib(r2,c2))break;ms.push([r2,c2]);if(bd[r2][c2])break;}} };
+            if(t==='P'){
+                const d=cl==='W'?-1:1, sr=cl==='W'?6:1;
+                if(ib(r+d,c)&&!bd[r+d][c]){ ms.push([r+d,c]);if(r===sr&&!bd[r+2*d][c])ms.push([r+2*d,c]); }
+                for(const dc of[-1,1]){
+                    if(ib(r+d,c+dc)){
+                        if(col(bd[r+d][c+dc])===opp) ms.push([r+d,c+dc]);
+                        if(ep_&&ep_[0]===r+d&&ep_[1]===c+dc) ms.push([r+d,c+dc]);
+                    }
+                }
+            } else if(t==='N'){
+                for(const[dr,dc]of[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) add(r+dr,c+dc);
+            } else if(t==='B'){ slide([[1,1],[1,-1],[-1,1],[-1,-1]]); }
+            else if(t==='R'){ slide([[1,0],[-1,0],[0,1],[0,-1]]); }
+            else if(t==='Q'){ slide([[1,1],[1,-1],[-1,1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]]); }
+            else if(t==='K'){
+                for(const[dr,dc]of[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]]) add(r+dr,c+dc);
+                // Castling - filtered for check later
+                if(cast){
+                    const kr=cl==='W'?7:0;
+                    if(r===kr&&c===4){
+                        if(cast[cl].k&&!bd[kr][5]&&!bd[kr][6]&&bd[kr][7]===cl+'R') ms.push([kr,6,'castle-k']);
+                        if(cast[cl].q&&!bd[kr][3]&&!bd[kr][2]&&!bd[kr][1]&&bd[kr][0]===cl+'R') ms.push([kr,2,'castle-q']);
+                    }
+                }
+            }
+            // Filter sliding past pieces (slide already handles it), filter own pieces
+            return ms.filter(([r2,c2])=>col(bd[r2][c2])!==cl);
+        }
+
+        function findKing(bd, cl){ for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(bd[r][c]===cl+'K')return[r,c]; return null; }
+
+        function inCheck(bd, cl){
+            const k=findKing(bd,cl); if(!k)return false;
+            const [kr,kc]=k, opp=cl==='W'?'B':'W';
+            for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+                if(col(bd[r][c])===opp){
+                    const ms=rawMoves(r,c,bd,null,null);
+                    if(ms.some(([mr,mc])=>mr===kr&&mc===kc))return true;
+                }
+            }
+            return false;
+        }
+
+        function applyMove(bd, fr, fc, tr, tc) {
+            const nb=bd.map(row=>[...row]);
+            const piece=nb[fr][fc];
+            nb[tr][tc]=piece; nb[fr][fc]=null;
+            return nb;
+        }
+
+        function legalMoves(r, c) {
+            const p=board[r][c]; if(!p||col(p)!==turn) return [];
+            const rms=rawMoves(r,c,board,ep,castling);
+            return rms.filter(([tr,tc,flag])=>{
+                let nb=applyMove(board,r,c,tr,tc);
+                // Handle en passant capture
+                if(p[1]==='P'&&ep&&tr===ep[0]&&tc===ep[1]){
+                    nb=nb.map(row=>[...row]);
+                    const cr=turn==='W'?tr+1:tr-1;
+                    nb[cr][tc]=null;
+                }
+                // Castling - check intermediate square
+                if(flag==='castle-k'||flag==='castle-q'){
+                    const mCol=flag==='castle-k'?5:3;
+                    const nb2=applyMove(board,r,c,r,mCol);
+                    if(inCheck(nb2,turn)||inCheck(board,turn))return false;
+                }
+                return !inCheck(nb,turn);
+            });
+        }
+
+        function doMove(fr, fc, tr, tc, flag) {
+            const p=board[fr][fc], cl=col(p), opp=cl==='W'?'B':'W';
+            const captured_piece=board[tr][tc];
+            if(captured_piece) captured[cl].push(captured_piece[1]);
+
+            // En passant capture
+            let epCapture=false;
+            if(p[1]==='P'&&ep&&tr===ep[0]&&tc===ep[1]){
+                const cr=cl==='W'?tr+1:tr-1;
+                captured[cl].push('P');
+                board[cr][tc]=null; epCapture=true;
+            }
+
+            // Set new ep target
+            ep = (p[1]==='P'&&Math.abs(tr-fr)===2) ? [(fr+tr)/2,tc] : null;
+
+            // Move piece
+            board[tr][tc]=p; board[fr][fc]=null;
+
+            // Castling: move rook
+            if(p[1]==='K'){
+                castling[cl]={k:false,q:false};
+                if(tc===6&&fc===4){ board[fr][5]=cl+'R'; board[fr][7]=null; }
+                if(tc===2&&fc===4){ board[fr][3]=cl+'R'; board[fr][0]=null; }
+            }
+            if(p[1]==='R'){ if(fc===0)castling[cl].q=false; if(fc===7)castling[cl].k=false; }
+
+            lastMove={fr,fc,tr,tc};
+
+            // Pawn promotion
+            if(p[1]==='P'&&(tr===0||tr===7)){
+                pendingPromo={r:tr,c:tc,cl};
+                render(); showPromo(cl);
+                return;
+            }
+
+            finishTurn();
+        }
+
+        function showPromo(cl) {
+            const overlay=document.getElementById('promoOverlay');
+            // Update piece display based on color
+            overlay.querySelectorAll('.promo-btn').forEach(btn=>{
+                const pt=btn.dataset.p;
+                btn.textContent=cl==='W'?UNI['W'+pt]:UNI['B'+pt];
+            });
+            overlay.classList.add('show');
+            overlay.querySelectorAll('.promo-btn').forEach(btn=>{
+                btn.onclick=()=>{
+                    board[pendingPromo.r][pendingPromo.c]=cl+btn.dataset.p;
+                    overlay.classList.remove('show');
+                    finishTurn();
+                };
+            });
+        }
+
+        function finishTurn() {
+            sel=null; validMoves=[];
+            turn=turn==='W'?'B':'W';
+            render(); updateStatus();
+        }
+
+        function updateStatus() {
+            const sb=document.getElementById('statusBar');
+            const sW=document.getElementById('stripW'), sB=document.getElementById('stripB');
+            sW.classList.toggle('active',turn==='W');
+            sB.classList.toggle('active',turn==='B');
+            document.getElementById('capW').textContent=captured.W.map(t=>UNI['B'+t]).join('');
+            document.getElementById('capB').textContent=captured.B.map(t=>UNI['W'+t]).join('');
+
+            if(gameOver)return;
+            const chk=inCheck(board,turn);
+            const hasAny=hasAnyLegalMove(turn);
+            if(!hasAny){
+                gameOver=true;
+                if(chk){ sb.textContent=(turn==='W'?'שחור':'לבן')+' ניצח — מט! 🏆'; sb.className='status-bar end'; }
+                else { sb.textContent='תיקו — פאט! 🤝'; sb.className='status-bar draw'; }
+            } else if(chk){
+                sb.textContent=(turn==='W'?'⬜ לבן':'⬛ שחור')+' — שאח! ⚠️'; sb.className='status-bar check';
+            } else {
+                sb.textContent='תור '+(turn==='W'?'⬜ לבן':'⬛ שחור')+' לשחק';
+                sb.className='status-bar';
+            }
+        }
+
+        function hasAnyLegalMove(cl){
+            for(let r=0;r<8;r++)for(let c=0;c<8;c++)
+                if(col(board[r][c])===cl&&legalMoves(r,c).length>0)return true;
+            return false;
+        }
+
+        function handleClick(r, c) {
+            if(gameOver||pendingPromo)return;
+            if(sel){
+                const mv=validMoves.find(([tr,tc])=>tr===r&&tc===c);
+                if(mv){
+                    doMove(sel[0],sel[1],r,c,mv[2]);
+                    sel=null; validMoves=[]; return;
+                }
+            }
+            if(col(board[r][c])===turn){
+                sel=[r,c]; validMoves=legalMoves(r,c); render();
+            } else {
+                sel=null; validMoves=[]; render();
+            }
+        }
+
+        function render() {
+            const chk=inCheck(board,turn);
+            const kingPos=chk?findKing(board,turn):null;
+            const validSet=new Set(validMoves.map(([r,c])=>`${r},${c}`));
+            const boardEl=document.getElementById('board');
+            boardEl.innerHTML='';
+            for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+                const cell=document.createElement('div');
+                const isLight=(r+c)%2===1;
+                cell.className='cell '+(isLight?'light':'dark');
+                if(sel&&sel[0]===r&&sel[1]===c) cell.classList.add('sel');
+                const key=`${r},${c}`;
+                if(validSet.has(key)){
+                    cell.classList.add('valid');
+                    if(board[r][c]) cell.classList.add('occ');
+                }
+                if(kingPos&&kingPos[0]===r&&kingPos[1]===c) cell.classList.add('in-check');
+                if(lastMove&&lastMove.fr===r&&lastMove.fc===c) cell.classList.add('last-from');
+                if(lastMove&&lastMove.tr===r&&lastMove.tc===c) cell.classList.add('last-to');
+                const p=board[r][c];
+                if(p) cell.textContent=UNI[p]||'';
+                cell.addEventListener('click',()=>handleClick(r,c));
+                boardEl.appendChild(cell);
+            }
+        }
+
+        newGame();
+    </script>
+</body>
+</html>

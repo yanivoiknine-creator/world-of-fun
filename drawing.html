@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>עולם הציור - עולם של כייף</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { overflow: hidden; }
+        .draw-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        /* Top nav + header */
+        .draw-top { flex-shrink: 0; }
+
+        /* Main area */
+        .draw-main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+        /* Left sidebar - tools */
+        .tools-sidebar {
+            width: 60px; flex-shrink: 0; background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 8px 0; gap: 4px; overflow-y: auto;
+        }
+        .tool-btn {
+            width: 46px; height: 46px; border-radius: 10px; border: 1.5px solid transparent;
+            background: transparent; cursor: pointer; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-size: 1.3rem;
+            transition: all 0.15s; color: var(--text-primary); padding: 0;
+        }
+        .tool-btn:hover { background: var(--bg-card); border-color: var(--border-color); }
+        .tool-btn.active { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+        .tool-btn .tlabel { font-size: 0.55rem; line-height: 1; margin-top: 2px; font-family: inherit; }
+        .tool-sep { width: 38px; height: 1px; background: var(--border-color); margin: 4px 0; flex-shrink: 0; }
+
+        /* Right options panel */
+        .options-panel {
+            width: 220px; flex-shrink: 0; background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+        }
+        .opt-section { background: var(--bg-card); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border-color); }
+        .opt-title { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .opt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .opt-label { font-size: 0.8rem; color: var(--text-primary); flex-shrink: 0; min-width: 42px; }
+        .opt-val { font-size: 0.8rem; color: var(--accent-1); font-weight: 600; min-width: 36px; text-align: center; flex-shrink: 0; }
+        input[type=range] { flex: 1; height: 4px; accent-color: var(--accent-1); cursor: pointer; }
+
+        /* Color picker */
+        .color-swatch {
+            width: 100%; aspect-ratio: 1; border-radius: 6px; border: 2px solid var(--border-color);
+            cursor: pointer; transition: transform 0.15s;
+        }
+        .color-swatch:hover { transform: scale(1.08); }
+        .color-swatch.active { border-color: var(--accent-1); box-shadow: 0 0 0 2px var(--accent-1); }
+        .color-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 8px; }
+        .color-full-row { display: flex; gap: 8px; align-items: center; }
+        input[type=color] { width: 40px; height: 40px; border: none; border-radius: 8px; cursor: pointer; padding: 2px; background: var(--bg-secondary); }
+
+        /* Text options */
+        .font-select, .text-size-input {
+            width: 100%; border: 1.5px solid var(--border-color); border-radius: 7px;
+            background: var(--bg-card); color: var(--text-primary); font-family: inherit;
+            font-size: 0.82rem; padding: 5px 8px; margin-bottom: 6px;
+        }
+        .text-style-row { display: flex; gap: 6px; }
+        .style-btn {
+            flex: 1; padding: 5px; border-radius: 7px; border: 1.5px solid var(--border-color);
+            background: transparent; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+            transition: all 0.15s; color: var(--text-primary);
+        }
+        .style-btn.active { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+
+        /* Canvas area */
+        .canvas-area { flex: 1; position: relative; overflow: hidden; background: #888; }
+        #drawCanvas { display: block; position: absolute; cursor: crosshair; }
+        #overlayCanvas { display: block; position: absolute; top: 0; left: 0; cursor: crosshair; pointer-events: none; }
+        #textInputEl {
+            position: fixed; min-width: 80px; outline: none; border: 1.5px dashed #0066ff;
+            background: rgba(255,255,255,0.7); padding: 2px 4px; line-height: 1.3; cursor: text;
+            z-index: 10000; resize: none; overflow: hidden;
+        }
+
+        /* Toolbar (bottom of screen) */
+        .draw-toolbar {
+            flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+            padding: 6px 10px; background: var(--bg-card); border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .tb-btn {
+            padding: 6px 14px; border-radius: 8px; border: 1.5px solid var(--border-color);
+            background: var(--bg-secondary); color: var(--text-primary); font-size: 0.82rem;
+            font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+            display: flex; align-items: center; gap: 5px; white-space: nowrap;
+        }
+        .tb-btn:hover { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+        .tb-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .tb-btn:disabled:hover { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-color); }
+        .tb-sep { width: 1px; height: 28px; background: var(--border-color); flex-shrink: 0; }
+        .tb-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Selection overlay */
+        .sel-overlay {
+            position: absolute; border: 2px dashed #0066ff; pointer-events: none;
+            box-shadow: 0 0 0 1px rgba(0,100,255,0.2);
+        }
+
+        /* Hide sidebar on mobile, show as bottom tabs */
+        @media (max-width: 640px) {
+            .draw-main { flex-direction: column-reverse; }
+            .tools-sidebar { width: 100%; height: 54px; flex-direction: row; padding: 4px 8px; overflow-x: auto; flex-wrap: nowrap; border-left: none; border-top: 1px solid var(--border-color); }
+            .tool-sep { width: 1px; height: 38px; margin: 0 4px; }
+            .options-panel { width: 100%; height: 130px; border-right: none; border-bottom: 1px solid var(--border-color); flex-direction: row; gap: 8px; overflow-x: auto; }
+            .opt-section { min-width: 180px; }
+        }
+    </style>
+</head>
+<body class="theme-purple-pink">
+<div class="draw-layout">
+    <!-- Top -->
+    <div class="draw-top">
+        <nav class="site-nav">
+            <a href="index.html" class="nav-link">גלריה</a>
+            <a href="games.html" class="nav-link">משחקים</a>
+            <a href="drawing.html" class="nav-link active">ציור</a>
+        </nav>
+        <header class="site-header" style="padding: 10px 20px;">
+            <div class="header-content">
+                <img src="logos/logo.png" alt="עולם של כייף" class="logo" style="width:36px;height:36px;">
+                <h1 class="site-title" style="font-size:1.2rem;">עולם הציור</h1>
+            </div>
+            <div class="theme-switcher">
+                <span class="theme-label">צבעים:</span>
+                <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד"><span class="color-dot purple"></span><span class="color-dot pink"></span></button>
+                <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן"><span class="color-dot black"></span><span class="color-dot white"></span></button>
+                <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק"><span class="color-dot yellow"></span><span class="color-dot green"></span></button>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main -->
+    <div class="draw-main">
+        <!-- Tools sidebar -->
+        <div class="tools-sidebar" id="toolsSidebar">
+            <button class="tool-btn active" data-tool="pencil" title="עיפרון"><span>✏️</span><span class="tlabel">עיפרון</span></button>
+            <button class="tool-btn" data-tool="brush" title="מכחול"><span>🖌️</span><span class="tlabel">מכחול</span></button>
+            <button class="tool-btn" data-tool="spray" title="ספריי"><span>💨</span><span class="tlabel">ספריי</span></button>
+            <button class="tool-btn" data-tool="eraser" title="מחק"><span>🧹</span><span class="tlabel">מחק</span></button>
+            <div class="tool-sep"></div>
+            <button class="tool-btn" data-tool="fill" title="מילוי צבע"><span>🪣</span><span class="tlabel">מילוי</span></button>
+            <button class="tool-btn" data-tool="text" title="טקסט"><span>T</span><span class="tlabel">טקסט</span></button>
+            <div class="tool-sep"></div>
+            <button class="tool-btn" data-tool="line" title="קו"><span>╱</span><span class="tlabel">קו</span></button>
+            <button class="tool-btn" data-tool="rect" title="מלבן"><span>□</span><span class="tlabel">מלבן</span></button>
+            <button class="tool-btn" data-tool="ellipse" title="עיגול"><span>○</span><span class="tlabel">עיגול</span></button>
+            <div class="tool-sep"></div>
+            <button class="tool-btn" data-tool="select" title="בחירה"><span>⊹</span><span class="tlabel">בחירה</span></button>
+        </div>
+
+        <!-- Canvas area -->
+        <div class="canvas-area" id="canvasArea">
+            <canvas id="drawCanvas"></canvas>
+            <canvas id="overlayCanvas"></canvas>
+        </div>
+
+        <!-- Options panel -->
+        <div class="options-panel">
+            <!-- Size & Opacity -->
+            <div class="opt-section">
+                <div class="opt-title">גודל כלי</div>
+                <div class="opt-row">
+                    <span class="opt-label">גודל</span>
+                    <input type="range" id="sizeSlider" min="1" max="80" value="8">
+                    <span class="opt-val" id="sizeVal">8</span>
+                </div>
+                <div class="opt-row">
+                    <span class="opt-label">שקיפות</span>
+                    <input type="range" id="opacitySlider" min="5" max="100" value="100">
+                    <span class="opt-val" id="opacityVal">100%</span>
+                </div>
+            </div>
+
+            <!-- Colors -->
+            <div class="opt-section" id="colorSection">
+                <div class="opt-title">צבעים</div>
+                <div class="color-grid" id="paletteGrid"></div>
+                <div class="color-full-row">
+                    <label class="opt-label" for="colorPicker">בחרי:</label>
+                    <input type="color" id="colorPicker" value="#000000">
+                    <div class="color-swatch active" id="currentSwatch" style="background:#000000;" title="צבע נוכחי"></div>
+                </div>
+            </div>
+
+            <!-- Text options (shown only when text tool active) -->
+            <div class="opt-section" id="textSection" style="display:none;">
+                <div class="opt-title">אפשרויות טקסט</div>
+                <select class="font-select" id="fontSelect">
+                    <option value="Arial, sans-serif">רגיל</option>
+                    <option value="'Times New Roman', serif">קלאסי</option>
+                    <option value="'Courier New', monospace">מחשב</option>
+                    <option value="Georgia, serif">אלגנטי</option>
+                    <option value="Verdana, sans-serif">עגול</option>
+                    <option value="'Comic Sans MS', cursive">כיפי</option>
+                    <option value="Impact, sans-serif">מודגש</option>
+                    <option value="cursive">כתב יד</option>
+                </select>
+                <div class="opt-row">
+                    <span class="opt-label">גודל</span>
+                    <input type="range" id="fontSizeSlider" min="8" max="120" value="24">
+                    <span class="opt-val" id="fontSizeVal">24</span>
+                </div>
+                <div class="text-style-row">
+                    <button class="style-btn" id="boldBtn" title="מודגש">B</button>
+                    <button class="style-btn" id="italicBtn" title="נטוי">I</button>
+                    <button class="style-btn" id="underlineBtn" title="קו תחתי">U</button>
+                </div>
+            </div>
+
+            <!-- Selection options -->
+            <div class="opt-section" id="selectSection" style="display:none;">
+                <div class="opt-title">בחירה</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <button class="tb-btn" onclick="copySelection()" style="width:100%;justify-content:center;">העתקה</button>
+                    <button class="tb-btn" onclick="cutSelection()" style="width:100%;justify-content:center;">גזירה</button>
+                    <button class="tb-btn" onclick="pasteSelection()" style="width:100%;justify-content:center;">הדבקה</button>
+                    <button class="tb-btn" onclick="deleteSelection()" style="width:100%;justify-content:center;color:#c62828;">מחיקה</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom toolbar -->
+    <div class="draw-toolbar">
+        <button class="tb-btn" id="btnUndo" onclick="undo()" title="בטל (Ctrl+Z)">↩ ביטול</button>
+        <button class="tb-btn" id="btnRedo" onclick="redo()" title="חזור (Ctrl+Y)">↪ חזור</button>
+        <div class="tb-sep"></div>
+        <label class="tb-btn" title="העלי תמונה">
+            🖼 תמונה
+            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        </label>
+        <button class="tb-btn" onclick="clearCanvas()">🗑 נקה</button>
+        <button class="tb-btn" onclick="downloadCanvas()">⬇ שמור</button>
+        <div class="tb-sep"></div>
+        <span class="tb-label">בגודל:</span>
+        <select id="canvasSizeSelect" class="font-select" style="width:auto;padding:5px 8px;margin:0;font-size:0.8rem;">
+            <option value="800,600">800×600</option>
+            <option value="1024,768">1024×768</option>
+            <option value="1280,720">1280×720</option>
+            <option value="1920,1080">1920×1080</option>
+            <option value="2000,2000">2000×2000</option>
+        </select>
+        <button class="tb-btn" onclick="resizeCanvasToSelected()">✓ החל</button>
+    </div>
+</div>
+
+<script>
+// ===== Theme =====
+(function(){
+    const t=localStorage.getItem('selectedTheme')||'theme-purple-pink';
+    document.body.className=t;
+    document.querySelectorAll('.theme-btn').forEach(b=>{
+        b.classList.toggle('active',b.dataset.theme===t);
+        b.addEventListener('click',()=>{document.body.className=b.dataset.theme;localStorage.setItem('selectedTheme',b.dataset.theme);document.querySelectorAll('.theme-btn').forEach(x=>x.classList.toggle('active',x.dataset.theme===b.dataset.theme));});
+    });
+})();
+
+// ===== Canvas Setup =====
+const area = document.getElementById('canvasArea');
+const canvas = document.getElementById('drawCanvas');
+const overlay = document.getElementById('overlayCanvas');
+const ctx = canvas.getContext('2d');
+const octx = overlay.getContext('2d');
+
+let BG_COLOR = '#ffffff';
+let history = [], histPos = -1;
+let tool = 'pencil', color = '#000000', brushSize = 8, opacity = 1;
+let isDrawing = false, lastX = 0, lastY = 0, startX = 0, startY = 0;
+let selRect = null, clipboard = null, textEl = null;
+let fontFamily = 'Arial, sans-serif', fontSize = 24, bold = false, italic = false, underline = false;
+
+// Palette
+const PALETTE = ['#000000','#ffffff','#c62828','#e53935','#ff7043','#ff8f00','#fdd835','#7cb342','#2e7d32','#00838f','#1565c0','#283593','#6a1b9a','#ad1457','#795548','#616161','#b0bec5','#ffccbc','#ffe0b2','#c8e6c9','#bbdefb','#e1bee7','#f8bbd0','#fff9c4'];
+
+function buildPalette() {
+    const grid = document.getElementById('paletteGrid');
+    PALETTE.forEach(c => {
+        const sw = document.createElement('div');
+        sw.className = 'color-swatch';
+        sw.style.background = c;
+        sw.title = c;
+        sw.addEventListener('click', () => setColor(c));
+        grid.appendChild(sw);
+    });
+}
+
+function setColor(c) {
+    color = c;
+    document.getElementById('colorPicker').value = c;
+    document.getElementById('currentSwatch').style.background = c;
+    document.querySelectorAll('#paletteGrid .color-swatch').forEach(sw => {
+        sw.classList.toggle('active', sw.style.background === hexToRgbStr(c) || sw.title === c);
+    });
+}
+
+function hexToRgbStr(hex) {
+    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+// Init canvas
+function initCanvas(w, h) {
+    canvas.width = w; canvas.height = h;
+    overlay.width = w; overlay.height = h;
+    ctx.fillStyle = BG_COLOR;
+    ctx.fillRect(0, 0, w, h);
+    history = []; histPos = -1;
+    saveState();
+    fitCanvas();
+}
+
+function fitCanvas() {
+    const aw = area.offsetWidth, ah = area.offsetHeight;
+    const cw = canvas.width, ch = canvas.height;
+    const scale = Math.min(aw/cw, ah/ch, 1);
+    const w = cw * scale, h = ch * scale;
+    const left = (aw - w) / 2, top = (ah - h) / 2;
+    canvas.style.cssText = `width:${w}px;height:${h}px;left:${left}px;top:${top}px;`;
+    overlay.style.cssText = `width:${w}px;height:${h}px;left:${left}px;top:${top}px;`;
+    canvas._scale = scale;
+}
+
+function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const s = canvas._scale || 1;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left) / s, y: (src.clientY - rect.top) / s };
+}
+
+// History
+function saveState() {
+    history = history.slice(0, histPos + 1);
+    history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    histPos = history.length - 1;
+    if (history.length > 60) { history.shift(); histPos--; }
+    updateHistoryBtns();
+}
+function undo() { if(histPos>0){histPos--;ctx.putImageData(history[histPos],0,0);updateHistoryBtns();} }
+function redo() { if(histPos<history.length-1){histPos++;ctx.putImageData(history[histPos],0,0);updateHistoryBtns();} }
+function updateHistoryBtns() {
+    document.getElementById('btnUndo').disabled = histPos <= 0;
+    document.getElementById('btnRedo').disabled = histPos >= history.length - 1;
+}
+
+// Drawing
+function onDown(e) {
+    if (e.type === 'touchstart') e.preventDefault();
+    const {x,y} = getCanvasPos(e);
+    startX=x; startY=y; lastX=x; lastY=y; isDrawing=true;
+
+    if (tool === 'text') {
+        if (textEl) finishText(); // commit existing text on canvas click
+        else startTextInput(x, y);
+        return;
+    }
+    if (tool === 'fill') { floodFill(Math.round(x), Math.round(y)); return; }
+
+    if (['pencil','brush','eraser'].includes(tool)) {
+        ctx.save();
+        ctx.globalAlpha = tool==='eraser'?1:opacity;
+        ctx.globalCompositeOperation = 'source-over';
+        const dc = tool==='eraser'?BG_COLOR:color;
+        ctx.strokeStyle = dc; ctx.fillStyle = dc;
+        ctx.lineWidth = tool==='brush'?brushSize*2.5:tool==='eraser'?brushSize*3:brushSize;
+        ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.beginPath(); ctx.arc(x,y,ctx.lineWidth/2,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+    }
+    if (tool === 'select') { clearSel(); }
+}
+
+function onMove(e) {
+    if (!isDrawing) return;
+    if (e.type === 'touchmove') e.preventDefault();
+    const {x,y} = getCanvasPos(e);
+
+    if (['pencil','brush','eraser'].includes(tool)) {
+        ctx.save();
+        ctx.globalAlpha = tool==='eraser'?1:opacity;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = tool==='eraser'?BG_COLOR:color;
+        ctx.lineWidth = tool==='brush'?brushSize*2.5:tool==='eraser'?brushSize*3:brushSize;
+        ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y); ctx.stroke();
+        ctx.restore();
+    } else if (tool === 'spray') {
+        ctx.save(); ctx.globalAlpha=0.06; ctx.fillStyle=color;
+        const r=brushSize*2.5;
+        for(let i=0;i<25;i++){
+            const a=Math.random()*Math.PI*2, d=Math.random()*r;
+            ctx.beginPath(); ctx.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,1,0,Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+    } else if (['line','rect','ellipse'].includes(tool)) {
+        octx.clearRect(0,0,overlay.width,overlay.height);
+        octx.save(); octx.globalAlpha=opacity; octx.strokeStyle=color; octx.lineWidth=brushSize;
+        octx.lineCap='round';
+        if(tool==='line'){ octx.beginPath();octx.moveTo(startX,startY);octx.lineTo(x,y);octx.stroke(); }
+        else if(tool==='rect'){ octx.strokeRect(startX,startY,x-startX,y-startY); }
+        else if(tool==='ellipse'){
+            octx.beginPath();octx.ellipse((startX+x)/2,(startY+y)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2);octx.stroke();
+        }
+        octx.restore();
+    } else if (tool === 'select') {
+        octx.clearRect(0,0,overlay.width,overlay.height);
+        octx.save(); octx.setLineDash([6,3]); octx.strokeStyle='#0066ff'; octx.lineWidth=1.5;
+        octx.strokeRect(startX,startY,x-startX,y-startY); octx.restore();
+        selRect = {x:startX,y:startY,w:x-startX,h:y-startY};
+    }
+    lastX=x; lastY=y;
+}
+
+function onUp(e) {
+    if (!isDrawing) return;
+    const {x,y} = e.type==='touchend'?{x:lastX,y:lastY}:getCanvasPos(e);
+    isDrawing = false;
+
+    if (['line','rect','ellipse'].includes(tool)) {
+        ctx.save(); ctx.globalAlpha=opacity; ctx.strokeStyle=color; ctx.lineWidth=brushSize; ctx.lineCap='round';
+        if(tool==='line'){ ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(x,y);ctx.stroke(); }
+        else if(tool==='rect'){ ctx.strokeRect(startX,startY,x-startX,y-startY); }
+        else if(tool==='ellipse'){
+            ctx.beginPath();ctx.ellipse((startX+x)/2,(startY+y)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2);ctx.stroke();
+        }
+        ctx.restore();
+        octx.clearRect(0,0,overlay.width,overlay.height);
+        saveState();
+    } else if (!['text','fill','select'].includes(tool)) {
+        saveState();
+    }
+}
+
+// Text tool
+function startTextInput(x, y) {
+    const el = document.createElement('textarea');
+    el.id = 'textInputEl';
+    el.rows = 1;
+    el.spellcheck = false;
+    const s = canvas._scale || 1;
+    const canvasRect = canvas.getBoundingClientRect();
+    // position:fixed on body — avoids overflow:hidden clipping from canvas-area
+    // Anchor the RIGHT edge at the click point (RTL Hebrew: text flows leftward from here)
+    el.style.right = (window.innerWidth - (canvasRect.left + x * s)) + 'px';
+    el.style.top   = (canvasRect.top  + y * s) + 'px';
+    el.style.left  = 'auto';
+    el.style.fontSize   = (fontSize * s) + 'px';
+    el.style.fontFamily = fontFamily;
+    el.style.fontWeight = bold    ? 'bold'      : 'normal';
+    el.style.fontStyle  = italic  ? 'italic'    : 'normal';
+    el.style.textDecoration = underline ? 'underline' : 'none';
+    el.style.color     = color;
+    el.style.direction = 'rtl';
+    document.body.appendChild(el);
+    el.focus();
+    textEl = {el, x, y};
+    el.addEventListener('blur', finishText);
+    el.addEventListener('input', () => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; });
+    el.addEventListener('keydown', ev => { if (ev.key === 'Escape') { textEl = null; el.remove(); } });
+}
+
+function finishText() {
+    if (!textEl) return;
+    const {el, x, y} = textEl;
+    textEl = null; // clear first — prevents re-entry when el.remove() fires blur
+    const text = el.value || '';
+    if (text.trim()) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.fillStyle = color;
+        let fstr = '';
+        if (italic) fstr += 'italic ';
+        if (bold)   fstr += 'bold ';
+        fstr += `${fontSize}px ${fontFamily}`;
+        ctx.font = fstr;
+        ctx.textBaseline = 'top';
+        ctx.direction    = 'rtl';
+        ctx.textAlign    = 'right';
+        text.split('\n').forEach((line, i) => {
+            if (!line) return;
+            const yPos = y + i * fontSize * 1.3;
+            ctx.fillText(line, x, yPos);
+            if (underline) {
+                const w = ctx.measureText(line).width;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = Math.max(1, fontSize / 18);
+                ctx.beginPath();
+                ctx.moveTo(x - w, yPos + fontSize + 2);
+                ctx.lineTo(x,     yPos + fontSize + 2);
+                ctx.stroke();
+            }
+        });
+        ctx.restore();
+        saveState();
+    }
+    try { el.remove(); } catch(e2) {}
+}
+
+// Flood fill
+function floodFill(fx, fy) {
+    if (fx<0||fx>=canvas.width||fy<0||fy>=canvas.height) return;
+    const id = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const d = id.data;
+    const idx = (fy*canvas.width+fx)*4;
+    const tr=[d[idx],d[idx+1],d[idx+2],d[idx+3]];
+    const fc = hexToRgba(color);
+    if(tr[0]===fc[0]&&tr[1]===fc[1]&&tr[2]===fc[2]) return;
+    const stack=[[fx,fy]];
+    const w=canvas.width, h=canvas.height;
+    while(stack.length){
+        const [px,py]=stack.pop();
+        if(px<0||px>=w||py<0||py>=h) continue;
+        const i=(py*w+px)*4;
+        if(!colMatch(d,i,tr)) continue;
+        d[i]=fc[0];d[i+1]=fc[1];d[i+2]=fc[2];d[i+3]=Math.round(opacity*255);
+        stack.push([px+1,py],[px-1,py],[px,py+1],[px,py-1]);
+    }
+    ctx.putImageData(id,0,0);
+    saveState();
+}
+function colMatch(d,i,t,tol=30){
+    return Math.abs(d[i]-t[0])+Math.abs(d[i+1]-t[1])+Math.abs(d[i+2]-t[2])<tol;
+}
+function hexToRgba(hex){
+    return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
+}
+
+// Selection
+function getNormSel(){
+    if(!selRect)return null;
+    const x=Math.round(Math.min(selRect.x,selRect.x+selRect.w));
+    const y=Math.round(Math.min(selRect.y,selRect.y+selRect.h));
+    const w=Math.round(Math.abs(selRect.w));
+    const h=Math.round(Math.abs(selRect.h));
+    return {x,y,w,h};
+}
+function copySelection(){
+    const s=getNormSel();
+    if(s&&s.w>0&&s.h>0){clipboard=ctx.getImageData(s.x,s.y,s.w,s.h);showMsg('הועתק ✓');}
+    else showMsg('סמני אזור קודם');
+}
+function cutSelection(){
+    const s=getNormSel();
+    if(s&&s.w>0&&s.h>0){
+        clipboard=ctx.getImageData(s.x,s.y,s.w,s.h);
+        ctx.fillStyle=BG_COLOR;ctx.fillRect(s.x,s.y,s.w,s.h);
+        clearSel();saveState();showMsg('נגזר ✓');
+    } else showMsg('סמני אזור קודם');
+}
+function deleteSelection(){const s=getNormSel();if(s&&s.w>0&&s.h>0){ctx.fillStyle=BG_COLOR;ctx.fillRect(s.x,s.y,s.w,s.h);clearSel();saveState();}}
+function pasteSelection(){if(!clipboard){showMsg('אין מה להדביק');return;}ctx.putImageData(clipboard,20,20);saveState();showMsg('הודבק ✓');}
+function clearSel(){selRect=null;octx.clearRect(0,0,overlay.width,overlay.height);}
+
+function showMsg(msg){
+    let m=document.getElementById('drawMsg');
+    if(!m){
+        m=document.createElement('div');m.id='drawMsg';
+        m.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent-1);color:#fff;padding:8px 20px;border-radius:10px;font-size:0.9rem;font-family:inherit;z-index:9999;pointer-events:none;transition:opacity 0.4s;';
+        document.body.appendChild(m);
+    }
+    m.textContent=msg;m.style.opacity='1';
+    clearTimeout(m._t);m._t=setTimeout(()=>m.style.opacity='0',1600);
+}
+
+// Clear & Download
+function clearCanvas(){if(!confirm('למחוק את כל הציור?'))return;ctx.fillStyle=BG_COLOR;ctx.fillRect(0,0,canvas.width,canvas.height);saveState();}
+function downloadCanvas(){const a=document.createElement('a');a.download='ציור.png';a.href=canvas.toDataURL('image/png');a.click();}
+function resizeCanvasToSelected(){
+    const val=document.getElementById('canvasSizeSelect').value.split(',');
+    const w=parseInt(val[0]),h=parseInt(val[1]);
+    const snap=ctx.getImageData(0,0,Math.min(w,canvas.width),Math.min(h,canvas.height));
+    initCanvas(w,h);
+    ctx.putImageData(snap,0,0);
+    saveState();
+}
+
+// Upload image
+document.getElementById('fileInput').addEventListener('change', function(e){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=function(ev){
+        const img=new Image();
+        img.onload=function(){ctx.drawImage(img,0,0,canvas.width,canvas.height);saveState();};
+        img.src=ev.target.result;
+    };
+    r.readAsDataURL(f);
+    e.target.value='';
+});
+
+// Tool selection
+document.querySelectorAll('.tool-btn[data-tool]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        finishText();
+        tool=btn.dataset.tool;
+        document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('textSection').style.display=tool==='text'?'':'none';
+        document.getElementById('selectSection').style.display=tool==='select'?'':'none';
+        overlay.style.pointerEvents=tool==='select'||['line','rect','ellipse'].includes(tool)?'none':'none';
+        if(tool!=='select'){clearSel();}
+        const curs={'pencil':'crosshair','brush':'crosshair','eraser':'cell','fill':'crosshair','text':'text','select':'crosshair','spray':'crosshair','line':'crosshair','rect':'crosshair','ellipse':'crosshair'};
+        canvas.style.cursor=curs[tool]||'crosshair';
+    });
+});
+
+// Controls
+document.getElementById('sizeSlider').addEventListener('input',function(){brushSize=+this.value;document.getElementById('sizeVal').textContent=this.value;});
+document.getElementById('opacitySlider').addEventListener('input',function(){opacity=this.value/100;document.getElementById('opacityVal').textContent=this.value+'%';});
+document.getElementById('colorPicker').addEventListener('input',function(){setColor(this.value);});
+document.getElementById('fontSelect').addEventListener('change',function(){fontFamily=this.value;});
+document.getElementById('fontSizeSlider').addEventListener('input',function(){fontSize=+this.value;document.getElementById('fontSizeVal').textContent=this.value;});
+['bold','italic','underline'].forEach(s=>{
+    const btn=document.getElementById(s+'Btn');
+    btn.addEventListener('click',()=>{
+        if(s==='bold')bold=!bold;
+        else if(s==='italic')italic=!italic;
+        else underline=!underline;
+        btn.classList.toggle('active');
+    });
+});
+
+// Canvas events
+canvas.addEventListener('mousedown',onDown);
+canvas.addEventListener('mousemove',onMove);
+canvas.addEventListener('mouseup',onUp);
+canvas.addEventListener('mouseleave',onUp);
+canvas.addEventListener('touchstart',onDown,{passive:false});
+canvas.addEventListener('touchmove',onMove,{passive:false});
+canvas.addEventListener('touchend',onUp,{passive:false});
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+    if(e.ctrlKey||e.metaKey){
+        if(e.key==='z'){e.preventDefault();undo();}
+        else if(e.key==='y'||e.key==='Z'){e.preventDefault();redo();}
+        else if(e.key==='c'){copySelection();}
+        else if(e.key==='x'){cutSelection();}
+        else if(e.key==='v'){pasteSelection();}
+    }
+    if(e.key==='Delete'&&tool==='select')deleteSelection();
+    if(e.key==='Escape'){finishText();clearSel();}
+});
+
+// Resize observer
+const ro=new ResizeObserver(()=>fitCanvas());
+ro.observe(area);
+
+// Init
+buildPalette();
+setColor('#000000');
+setTimeout(()=>initCanvas(800,600),50);
+updateHistoryBtns();
+</script>
+<script src="a11y.js"></script>
+</body>
+</html>

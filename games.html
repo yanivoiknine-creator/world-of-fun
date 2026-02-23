@@ -3,31 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחקים - עולם של תמונות</title>
+    <title>עולם המשחקים - עולם של כייף</title>
     <link rel="icon" href="logos/logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <style>
         .games-container {
-            max-width: 900px;
+            max-width: 960px;
             margin: 0 auto;
             padding: 40px 20px;
             position: relative;
             z-index: 1;
         }
-
         .games-title {
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 30px;
         }
-
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 22px;
         }
-
         .game-card {
             background: var(--bg-card);
             border-radius: 16px;
@@ -39,39 +37,31 @@
             display: block;
             border: 1.5px solid var(--border-color);
         }
-
         .game-card:hover {
             transform: translateY(-6px);
-            box-shadow: 0 12px 32px var(--shadow-color);
+            box-shadow: 0 14px 36px var(--shadow-color);
         }
-
         .game-card-image {
             width: 100%;
-            height: 180px;
+            height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5rem;
+            font-size: 4.5rem;
             background: var(--header-bg);
         }
-
-        .game-card-body {
-            padding: 18px;
-        }
-
+        .game-card-body { padding: 16px 18px 18px; }
         .game-card-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-
         .game-card-desc {
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             color: var(--text-secondary);
             line-height: 1.5;
         }
-
         .game-card-badge {
             display: inline-block;
             margin-top: 10px;
@@ -82,60 +72,42 @@
             background: var(--accent-1);
             color: white;
         }
-
-        .coming-soon .game-card-image {
-            opacity: 0.5;
-        }
-
-        .coming-soon .game-card-badge {
-            background: var(--text-secondary);
-        }
-
-        .coming-soon {
-            pointer-events: none;
-            opacity: 0.7;
-        }
     </style>
 </head>
 <body class="theme-purple-pink">
 
-    <!-- Background Decorations -->
+    <a href="#games-grid" class="skip-link">דלג לתוכן הראשי</a>
     <div class="bg-decorations" id="bgDecorations"></div>
 
-    <!-- Site Navigation -->
     <nav class="site-nav">
         <a href="index.html" class="nav-link">גלריה</a>
         <a href="games.html" class="nav-link active">משחקים</a>
+        <a href="drawing.html" class="nav-link">ציור</a>
     </nav>
 
-    <!-- Header -->
     <header class="site-header">
         <div class="header-content">
-            <img src="logos/logo.png" alt="עולם של תמונות" class="logo">
-            <h1 class="site-title">עולם של תמונות</h1>
+            <img src="logos/logo.png" alt="עולם של כייף" class="logo">
+            <h1 class="site-title">עולם של כייף</h1>
         </div>
         <div class="theme-switcher">
             <span class="theme-label">בחרי ערכת צבעים:</span>
             <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד">
-                <span class="color-dot purple"></span>
-                <span class="color-dot pink"></span>
+                <span class="color-dot purple"></span><span class="color-dot pink"></span>
             </button>
             <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן">
-                <span class="color-dot black"></span>
-                <span class="color-dot white"></span>
+                <span class="color-dot black"></span><span class="color-dot white"></span>
             </button>
             <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק">
-                <span class="color-dot yellow"></span>
-                <span class="color-dot green"></span>
+                <span class="color-dot yellow"></span><span class="color-dot green"></span>
             </button>
         </div>
     </header>
 
-    <!-- Games -->
     <div class="games-container">
-        <h2 class="games-title">🎮 משחקים</h2>
+        <h2 class="games-title">עולם המשחקים</h2>
+        <div class="games-grid" id="games-grid">
 
-        <div class="games-grid">
             <a href="flappy.html" class="game-card">
                 <div class="game-card-image">🐦</div>
                 <div class="game-card-body">
@@ -153,16 +125,47 @@
                     <span class="game-card-badge">שחקי עכשיו</span>
                 </div>
             </a>
+
+            <a href="chess.html" class="game-card">
+                <div class="game-card-image">♟</div>
+                <div class="game-card-body">
+                    <div class="game-card-title">שחמט</div>
+                    <div class="game-card-desc">משחק הלוח הקלאסי! שתי שחקניות על אותו מסך — מי תנצח?</div>
+                    <span class="game-card-badge">שחקי עכשיו</span>
+                </div>
+            </a>
+
+            <a href="checkers.html" class="game-card">
+                <div class="game-card-image">🔴</div>
+                <div class="game-card-body">
+                    <div class="game-card-title">דמקה</div>
+                    <div class="game-card-desc">אכלי את כלי היריבה ותגיעי עם כמה שיותר כלים! 2 שחקניות.</div>
+                    <span class="game-card-badge">שחקי עכשיו</span>
+                </div>
+            </a>
+
+            <a href="rps.html" class="game-card">
+                <div class="game-card-image">✂️</div>
+                <div class="game-card-body">
+                    <div class="game-card-title">אבן, נייר, מספריים</div>
+                    <div class="game-card-desc">אתגרי את המחשב! מי תנצח בסדרה של 5 סיבובים?</div>
+                    <span class="game-card-badge">שחקי עכשיו</span>
+                </div>
+            </a>
+
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="site-footer">
-        <p>עולם של תמונות &copy; 2026 | נבנה באהבה 💗</p>
+        <p>עולם של כייף &copy; 2026 | נבנה באהבה 💗</p>
+        <p class="footer-links">
+            <button class="footer-link-btn" id="footerA11yStatement">הצהרת נגישות</button>
+            <span class="footer-sep">|</span>
+            <span>כל הזכויות שמורות</span>
+        </p>
     </footer>
 
     <script>
-        // Background decorations (same as main page)
         function createDecorations() {
             const container = document.getElementById('bgDecorations');
             container.innerHTML = '';
@@ -181,7 +184,6 @@
         }
         createDecorations();
 
-        // Theme switching
         const themeBtns = document.querySelectorAll('.theme-btn');
         const savedTheme = localStorage.getItem('selectedTheme') || 'theme-purple-pink';
         document.body.className = savedTheme;
@@ -194,6 +196,8 @@
                 themeBtns.forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
             });
         });
+
     </script>
+    <script src="a11y.js"></script>
 </body>
 </html>

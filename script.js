@@ -185,7 +185,7 @@ document.getElementById('btnPrint').addEventListener('click', () => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>הדפסת תמונה - עולם של תמונות</title>
+            <title>הדפסת תמונה - עולם של כייף</title>
             <style>
                 body {
                     display: flex;
@@ -215,3 +215,5 @@ document.getElementById('btnPrint').addEventListener('click', () => {
     printWindow.document.close();
     showToast('נשלח להדפסה! 🖨️');
 });
+
+// Accessibility widget, cookie banner and statement handled by a11y.js

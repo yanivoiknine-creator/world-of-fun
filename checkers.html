@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דמקה - עולם של כייף</title>
+    <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .game-wrap { max-width: 560px; margin: 0 auto; padding: 24px 16px; position: relative; z-index: 1; }
+        .game-h { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 10px; }
+        .status-bar {
+            text-align: center; padding: 9px 20px; border-radius: 20px;
+            font-size: 0.95rem; font-weight: 600; margin-bottom: 14px;
+            background: var(--bg-secondary); color: var(--text-primary);
+            border: 1.5px solid var(--border-color);
+        }
+        .status-bar.turn-r { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+        .status-bar.turn-b { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+        .status-bar.win { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; font-size: 1.1rem; }
+        .board-wrap {
+            display: inline-block; border: 3px solid var(--accent-1);
+            border-radius: 10px; overflow: hidden; display: block;
+            max-width: 480px; margin: 0 auto;
+        }
+        .board {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            aspect-ratio: 1; width: 100%;
+        }
+        .cell {
+            aspect-ratio: 1; display: flex; align-items: center;
+            justify-content: center; cursor: default; position: relative;
+        }
+        .cell.dark { background: #b58863; }
+        .cell.light { background: #f0d9b5; }
+        .cell.selected { background: #7fc97f !important; }
+        .cell.valid-move { background: #90ee90 !important; cursor: pointer; }
+        .cell.valid-move::after {
+            content: ''; position: absolute;
+            width: 35%; height: 35%; border-radius: 50%;
+            background: rgba(0,130,0,0.45);
+        }
+        .cell.valid-move.has-enemy { background: rgba(0,200,80,0.25) !important; }
+        .cell.valid-move.has-enemy::after { display: none; }
+        .piece {
+            width: 76%; height: 76%; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            transition: transform 0.15s; cursor: pointer; position: relative; z-index: 1;
+        }
+        .piece-R { background: radial-gradient(circle at 35% 35%, #ff7777, #cc0000); border: 2px solid #990000; }
+        .piece-B { background: radial-gradient(circle at 35% 35%, #aaaaff, #1a1aaa); border: 2px solid #000088; }
+        .piece.king::after { content: '♛'; color: gold; font-size: 0.9em; position: absolute; }
+        .piece:hover { transform: scale(1.1); }
+        .controls {
+            display: flex; justify-content: center; gap: 12px;
+            margin-top: 14px; flex-wrap: wrap;
+        }
+        .ctrl-btn {
+            padding: 9px 22px; border-radius: 10px; border: 1.5px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem;
+            font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: var(--btn-active); color: white; border-color: var(--btn-active); }
+        .back-lnk {
+            display: block; text-align: center; margin-top: 16px;
+            color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;
+        }
+        .back-lnk:hover { color: var(--accent-1); }
+        .score-row {
+            display: flex; justify-content: center; gap: 30px;
+            margin-bottom: 12px;
+        }
+        .score-box {
+            text-align: center; background: var(--bg-card);
+            border: 1.5px solid var(--border-color); border-radius: 10px;
+            padding: 6px 18px;
+        }
+        .score-box .sn { font-size: 0.78rem; color: var(--text-secondary); }
+        .score-box .sv { font-size: 1.6rem; font-weight: 700; color: var(--accent-1); }
+    </style>
+</head>
+<body class="theme-purple-pink">
+    <div class="bg-decorations" id="bgDecorations"></div>
+    <nav class="site-nav">
+        <a href="index.html" class="nav-link">גלריה</a>
+        <a href="games.html" class="nav-link active">משחקים</a>
+        <a href="drawing.html" class="nav-link">ציור</a>
+    </nav>
+    <header class="site-header">
+        <div class="header-content">
+            <img src="logos/logo.png" alt="עולם של כייף" class="logo">
+            <h1 class="site-title">עולם של כייף</h1>
+        </div>
+        <div class="theme-switcher">
+            <span class="theme-label">בחרי ערכת צבעים:</span>
+            <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד"><span class="color-dot purple"></span><span class="color-dot pink"></span></button>
+            <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן"><span class="color-dot black"></span><span class="color-dot white"></span></button>
+            <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק"><span class="color-dot yellow"></span><span class="color-dot green"></span></button>
+        </div>
+    </header>
+
+    <div class="game-wrap">
+        <h2 class="game-h">🔴 דמקה</h2>
+        <div class="score-row">
+            <div class="score-box"><div class="sn">🔴 אדום</div><div class="sv" id="scoreR">0</div></div>
+            <div class="score-box"><div class="sn">🔵 כחול</div><div class="sv" id="scoreB">0</div></div>
+        </div>
+        <div class="status-bar turn-r" id="statusBar">תור אדום לשחק</div>
+        <div class="board-wrap"><div class="board" id="board"></div></div>
+        <div class="controls">
+            <button class="ctrl-btn" onclick="initGame()">משחק חדש</button>
+        </div>
+        <a href="games.html" class="back-lnk">← חזרה למשחקים</a>
+    </div>
+
+    <script>
+        // Theme & decorations
+        (function(){
+            const t=localStorage.getItem('selectedTheme')||'theme-purple-pink';
+            document.body.className=t;
+            document.querySelectorAll('.theme-btn').forEach(b=>{
+                b.classList.toggle('active',b.dataset.theme===t);
+                b.addEventListener('click',()=>{document.body.className=b.dataset.theme;localStorage.setItem('selectedTheme',b.dataset.theme);document.querySelectorAll('.theme-btn').forEach(x=>x.classList.toggle('active',x.dataset.theme===b.dataset.theme));});
+            });
+            const c=document.getElementById('bgDecorations');c.innerHTML='';
+            for(let i=0;i<16;i++){const e=document.createElement('div');e.className='bg-deco '+(i%2===0?'bg-cherry':'bg-bow');e.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(55+Math.random()*45)+'px;height:'+(55+Math.random()*45)+'px;opacity:'+(0.09+Math.random()*0.08)+';transform:rotate('+(Math.random()*360)+'deg)';e.innerHTML=i%2===0?'<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>':'<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';c.appendChild(e);}
+        })();
+
+        // ===== CHECKERS GAME =====
+        let board, turn, selected, phase, jumpingAt, gameOver, scores;
+
+        function initGame() {
+            board = Array(8).fill(null).map(() => Array(8).fill(null));
+            // R = Red (player 1, starts top), B = Blue (player 2, starts bottom)
+            // Dark squares: (r+c) % 2 === 0
+            for (let r = 0; r < 3; r++)
+                for (let c = 0; c < 8; c++)
+                    if ((r+c)%2===0) board[r][c] = {color:'R', king:false};
+            for (let r = 5; r < 8; r++)
+                for (let c = 0; c < 8; c++)
+                    if ((r+c)%2===0) board[r][c] = {color:'B', king:false};
+            turn = 'R'; selected = null; phase = 'select'; jumpingAt = null; gameOver = false;
+            if (!scores) scores = {R:0, B:0};
+            render();
+            updateStatus();
+        }
+
+        function getJumps(r, c, bd) {
+            const p = bd[r][c]; if (!p) return [];
+            const opp = p.color === 'R' ? 'B' : 'R';
+            const dirs = p.king ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+                       : (p.color === 'R' ? [[1,-1],[1,1]] : [[-1,-1],[-1,1]]);
+            const jumps = [];
+            for (const [dr,dc] of dirs) {
+                const mr=r+dr, mc=c+dc, lr=r+2*dr, lc=c+2*dc;
+                if (lr>=0&&lr<8&&lc>=0&&lc<8&&bd[mr][mc]?.color===opp&&!bd[lr][lc])
+                    jumps.push({to:[lr,lc], cap:[mr,mc]});
+            }
+            return jumps;
+        }
+
+        function getMoves(r, c) {
+            const p = board[r][c]; if (!p) return [];
+            const dirs = p.king ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+                       : (p.color === 'R' ? [[1,-1],[1,1]] : [[-1,-1],[-1,1]]);
+            const moves = [];
+            for (const [dr,dc] of dirs) {
+                const nr=r+dr, nc=c+dc;
+                if (nr>=0&&nr<8&&nc>=0&&nc<8&&!board[nr][nc]) moves.push([nr,nc]);
+            }
+            return moves;
+        }
+
+        function hasAnyJump(color, bd) {
+            bd = bd || board;
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++)
+                if (bd[r][c]?.color===color && getJumps(r,c,bd).length>0) return true;
+            return false;
+        }
+
+        function getValidHighlights() {
+            if (!selected) return [];
+            const {r,c} = selected;
+            if (phase === 'jumping') {
+                return getJumps(r,c,board).map(j=>({pos:j.to, isJump:true}));
+            }
+            if (hasAnyJump(turn, board)) {
+                return getJumps(r,c,board).map(j=>({pos:j.to, isJump:true}));
+            }
+            return getMoves(r,c).map(pos=>({pos, isJump:false}));
+        }
+
+        function handleClick(r, c) {
+            if (gameOver) return;
+            const p = board[r][c];
+
+            if (phase === 'jumping') {
+                const jumps = getJumps(jumpingAt.r, jumpingAt.c, board);
+                const j = jumps.find(j=>j.to[0]===r&&j.to[1]===c);
+                if (j) { doJump(jumpingAt.r, jumpingAt.c, j); return; }
+                return; // must continue jumping
+            }
+
+            if (selected) {
+                const {r: sr, c: sc} = selected;
+                // Try jump
+                const jumps = getJumps(sr, sc, board);
+                const j = jumps.find(j=>j.to[0]===r&&j.to[1]===c);
+                if (j && hasAnyJump(turn, board)) { doJump(sr, sc, j); return; }
+
+                // Try move
+                if (!hasAnyJump(turn, board)) {
+                    const moves = getMoves(sr, sc);
+                    if (moves.some(m=>m[0]===r&&m[1]===c)) { doMove(sr,sc,r,c); return; }
+                }
+
+                // Select another piece
+                if (p?.color === turn) { selected = {r,c}; render(); return; }
+                selected = null; render(); return;
+            }
+
+            if (p?.color === turn) { selected = {r,c}; render(); }
+        }
+
+        function doJump(fr, fc, jump) {
+            const [tr,tc] = jump.to, [cr,cc] = jump.cap;
+            board[tr][tc] = board[fr][fc];
+            board[fr][fc] = null; board[cr][cc] = null;
+            promote(tr, tc);
+            selected = {r:tr, c:tc};
+            const more = getJumps(tr, tc, board);
+            if (more.length > 0) {
+                phase = 'jumping'; jumpingAt = {r:tr, c:tc};
+            } else {
+                endTurn();
+            }
+            render();
+        }
+
+        function doMove(fr, fc, tr, tc) {
+            board[tr][tc] = board[fr][fc];
+            board[fr][fc] = null;
+            promote(tr, tc);
+            selected = null; endTurn(); render();
+        }
+
+        function promote(r, c) {
+            const p = board[r][c];
+            if (!p) return;
+            if (p.color==='R' && r===7) p.king = true;
+            if (p.color==='B' && r===0) p.king = true;
+        }
+
+        function endTurn() {
+            phase = 'select'; jumpingAt = null; selected = null;
+            turn = turn === 'R' ? 'B' : 'R';
+            checkWin();
+            updateStatus();
+        }
+
+        function checkWin() {
+            let rCount=0, bCount=0;
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+                if (board[r][c]?.color==='R') rCount++;
+                if (board[r][c]?.color==='B') bCount++;
+            }
+            if (rCount===0||bCount===0) {
+                gameOver = true;
+                const winner = rCount===0 ? 'B' : 'R';
+                scores[winner]++;
+                document.getElementById('scoreR').textContent = scores.R;
+                document.getElementById('scoreB').textContent = scores.B;
+                const sb = document.getElementById('statusBar');
+                sb.textContent = winner==='R' ? '🔴 אדום ניצח! מזל טוב! 🎉' : '🔵 כחול ניצח! מזל טוב! 🎉';
+                sb.className = 'status-bar win';
+                return;
+            }
+            // Check if current player can move
+            let canMove = false;
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+                if (board[r][c]?.color===turn) {
+                    if (getJumps(r,c,board).length>0||getMoves(r,c).length>0) { canMove=true; break; }
+                }
+            }
+            if (!canMove) {
+                gameOver = true;
+                const winner = turn==='R' ? 'B' : 'R';
+                scores[winner]++;
+                document.getElementById('scoreR').textContent = scores.R;
+                document.getElementById('scoreB').textContent = scores.B;
+                const sb = document.getElementById('statusBar');
+                sb.textContent = winner==='R' ? '🔴 אדום ניצח! 🎉' : '🔵 כחול ניצח! 🎉';
+                sb.className = 'status-bar win';
+            }
+        }
+
+        function updateStatus() {
+            if (gameOver) return;
+            const sb = document.getElementById('statusBar');
+            const mustJump = hasAnyJump(turn, board);
+            if (turn === 'R') {
+                sb.textContent = mustJump ? '🔴 תור אדום — חייבת לאכול!' : '🔴 תור אדום לשחק';
+                sb.className = 'status-bar turn-r';
+            } else {
+                sb.textContent = mustJump ? '🔵 תור כחול — חייבת לאכול!' : '🔵 תור כחול לשחק';
+                sb.className = 'status-bar turn-b';
+            }
+        }
+
+        function render() {
+            const highlights = getValidHighlights();
+            const validSet = new Set(highlights.map(h=>`${h.pos[0]},${h.pos[1]}`));
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+                const cell = document.createElement('div');
+                const isDark = (r+c)%2===0;
+                cell.className = 'cell ' + (isDark ? 'dark' : 'light');
+                const key = `${r},${c}`;
+                if (selected && selected.r===r && selected.c===c) cell.classList.add('selected');
+                if (validSet.has(key)) {
+                    cell.classList.add('valid-move');
+                    if (board[r][c]) cell.classList.add('has-enemy');
+                }
+                const p = board[r][c];
+                if (p && isDark) {
+                    const pEl = document.createElement('div');
+                    pEl.className = `piece piece-${p.color}${p.king ? ' king' : ''}`;
+                    cell.appendChild(pEl);
+                }
+                if (isDark) cell.addEventListener('click', ()=>handleClick(r,c));
+                boardEl.appendChild(cell);
+            }
+        }
+
+        initGame();
+    </script>
+</body>
+</html>
