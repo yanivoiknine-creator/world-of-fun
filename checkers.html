@@ -67,6 +67,11 @@
             color: var(--text-secondary); text-decoration: none; font-size: 0.9rem;
         }
         .back-lnk:hover { color: var(--accent-1); }
+        .mode-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .mode-btn { padding: 7px 16px; border-radius: 18px; border: 1.5px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .mode-btn:hover { border-color: var(--accent-1); }
+        .mode-btn.active { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+        .ai-thinking { text-align: center; font-size: 0.85rem; color: var(--text-secondary); height: 18px; margin-bottom: 4px; }
         .score-row {
             display: flex; justify-content: center; gap: 30px;
             margin-bottom: 12px;
@@ -102,6 +107,12 @@
 
     <div class="game-wrap">
         <h2 class="game-h">🔴 דמקה</h2>
+        <div class="mode-row">
+            <button class="mode-btn active" id="ck2p"   onclick="setCheckersMode('2p')">👥 שני שחקנים</button>
+            <button class="mode-btn"         id="ckEasy" onclick="setCheckersMode('easy')">🤖 מחשב קל</button>
+            <button class="mode-btn"         id="ckMed"  onclick="setCheckersMode('medium')">🤖 מחשב בינוני</button>
+        </div>
+        <div class="ai-thinking" id="aiThinking"></div>
         <div class="score-row">
             <div class="score-box"><div class="sn">🔴 אדום</div><div class="sv" id="scoreR">0</div></div>
             <div class="score-box"><div class="sn">🔵 כחול</div><div class="sv" id="scoreB">0</div></div>
@@ -126,6 +137,17 @@
             const c=document.getElementById('bgDecorations');c.innerHTML='';
             for(let i=0;i<16;i++){const e=document.createElement('div');e.className='bg-deco '+(i%2===0?'bg-cherry':'bg-bow');e.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(55+Math.random()*45)+'px;height:'+(55+Math.random()*45)+'px;opacity:'+(0.09+Math.random()*0.08)+';transform:rotate('+(Math.random()*360)+'deg)';e.innerHTML=i%2===0?'<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>':'<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';c.appendChild(e);}
         })();
+
+        // ===== MODE =====
+        let checkersMode = '2p';
+        function setCheckersMode(m) {
+            checkersMode = m;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(m==='2p'?'ck2p':m==='easy'?'ckEasy':'ckMed').classList.add('active');
+            // Update Blue score label to show "מחשב" when AI mode
+            document.querySelector('#scoreB .sn').textContent = m !== '2p' ? '🤖 מחשב' : '🔵 כחול';
+            initGame();
+        }
 
         // ===== CHECKERS GAME =====
         let board, turn, selected, phase, jumpingAt, gameOver, scores;
@@ -257,6 +279,12 @@
             turn = turn === 'R' ? 'B' : 'R';
             checkWin();
             updateStatus();
+            if (!gameOver && checkersMode !== '2p' && turn === 'B') {
+                document.getElementById('aiThinking').textContent = '🤖 המחשב חושב...';
+                setTimeout(doAICheckers, 300);
+            } else {
+                document.getElementById('aiThinking').textContent = '';
+            }
         }
 
         function checkWin() {
@@ -334,7 +362,119 @@
             }
         }
 
+        // ===== CHECKERS AI =====
+        function getAllMoves(color, bd) {
+            const moves = [];
+            const forceJump = hasAnyJump(color, bd);
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+                const p = bd[r][c];
+                if (!p || p.color !== color) continue;
+                if (forceJump) {
+                    for (const j of getJumps(r,c,bd)) moves.push({type:'jump',fr:r,fc:c,j});
+                } else {
+                    const opp = color==='R'?'B':'R';
+                    const dirs = p.king?[[-1,-1],[-1,1],[1,-1],[1,1]]:(color==='R'?[[1,-1],[1,1]]:[[-1,-1],[-1,1]]);
+                    for (const [dr,dc] of dirs) {
+                        const nr=r+dr, nc=c+dc;
+                        if (nr>=0&&nr<8&&nc>=0&&nc<8&&!bd[nr][nc]) moves.push({type:'move',fr:r,fc:c,tr:nr,tc:nc});
+                    }
+                }
+            }
+            return moves;
+        }
+
+        function applyMoveAI(bd, mv) {
+            const nb = bd.map(r => r.map(p => p ? {...p} : null));
+            if (mv.type === 'jump') {
+                const {fr,fc,j} = mv;
+                nb[j.to[0]][j.to[1]] = nb[fr][fc];
+                nb[fr][fc] = null;
+                nb[j.cap[0]][j.cap[1]] = null;
+                // Promote
+                const p = nb[j.to[0]][j.to[1]];
+                if (p.color==='R'&&j.to[0]===7) p.king=true;
+                if (p.color==='B'&&j.to[0]===0) p.king=true;
+            } else {
+                nb[mv.tr][mv.tc] = nb[mv.fr][mv.fc];
+                nb[mv.fr][mv.fc] = null;
+                const p = nb[mv.tr][mv.tc];
+                if (p.color==='R'&&mv.tr===7) p.king=true;
+                if (p.color==='B'&&mv.tr===0) p.king=true;
+            }
+            return nb;
+        }
+
+        function evalCheckers(bd) {
+            let s = 0;
+            for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+                const p = bd[r][c]; if (!p) continue;
+                const v = p.king ? 3 : 1;
+                s += (p.color==='R' ? 1 : -1) * v;
+            }
+            return s;
+        }
+
+        function minimaxC(bd, depth, alpha, beta, isMax) {
+            if (depth === 0) return evalCheckers(bd);
+            const color = isMax ? 'R' : 'B';
+            const moves = getAllMoves(color, bd);
+            if (!moves.length) return isMax ? -100 : 100;
+            if (isMax) {
+                let best = -Infinity;
+                for (const mv of moves) {
+                    const nb = applyMoveAI(bd, mv);
+                    best = Math.max(best, minimaxC(nb, depth-1, alpha, beta, false));
+                    alpha = Math.max(alpha, best); if (beta <= alpha) break;
+                }
+                return best;
+            } else {
+                let best = Infinity;
+                for (const mv of moves) {
+                    const nb = applyMoveAI(bd, mv);
+                    best = Math.min(best, minimaxC(nb, depth-1, alpha, beta, true));
+                    beta = Math.min(beta, best); if (beta <= alpha) break;
+                }
+                return best;
+            }
+        }
+
+        function doAICheckers() {
+            if (gameOver || checkersMode === '2p' || turn !== 'B') return;
+            // Multi-jump continuation: only jumping piece can continue
+            if (phase === 'jumping' && jumpingAt) {
+                const jumps = getJumps(jumpingAt.r, jumpingAt.c, board);
+                document.getElementById('aiThinking').textContent = '';
+                if (jumps.length) {
+                    doJump(jumpingAt.r, jumpingAt.c, jumps[0]);
+                    if (phase === 'jumping' && !gameOver)
+                        setTimeout(doAICheckers, 400);
+                } else { endTurn(); }
+                return;
+            }
+            const depth = checkersMode === 'easy' ? 2 : 4;
+            const moves = getAllMoves('B', board);
+            if (!moves.length) { document.getElementById('aiThinking').textContent = ''; return; }
+            moves.sort(() => Math.random() - 0.5);
+            let best = Infinity, bestMv = moves[0];
+            for (const mv of moves) {
+                const nb = applyMoveAI(board, mv);
+                const v = minimaxC(nb, depth-1, -Infinity, Infinity, true);
+                if (v < best) { best = v; bestMv = mv; }
+            }
+            document.getElementById('aiThinking').textContent = '';
+            if (bestMv.type === 'jump') {
+                doJump(bestMv.fr, bestMv.fc, bestMv.j);
+                if (phase === 'jumping' && !gameOver) {
+                    document.getElementById('aiThinking').textContent = '🤖 ממשיך לאכול...';
+                    setTimeout(doAICheckers, 400);
+                }
+            } else {
+                doMove(bestMv.fr, bestMv.fc, bestMv.tr, bestMv.tc);
+            }
+        }
+
         initGame();
     </script>
+    <script src="a11y.js"></script>
 </body>
 </html>

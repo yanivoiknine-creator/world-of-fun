@@ -7,81 +7,103 @@
     <link rel="icon" href="logos/logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <style>
-        .game-wrap { max-width: 500px; margin: 0 auto; padding: 30px 20px; position: relative; z-index: 1; text-align: center; }
-        .game-h { font-size: 1.7rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
-        .game-sub { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 24px; }
-        .score-bar {
-            display: flex; justify-content: center; gap: 30px;
-            margin-bottom: 24px;
+        .game-wrap { max-width: 500px; margin: 0 auto; padding: 24px 20px; position: relative; z-index: 1; text-align: center; }
+        .game-h { font-size: 1.7rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; }
+
+        /* Mode tabs */
+        .mode-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .mode-tab {
+            padding: 9px 20px; border-radius: 22px; border: 1.5px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem;
+            font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s;
         }
-        .score-box {
-            background: var(--bg-card); border: 1.5px solid var(--border-color);
-            border-radius: 12px; padding: 10px 22px; min-width: 90px;
+        .mode-tab:hover { border-color: var(--accent-1); }
+        .mode-tab.active { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+
+        /* Name inputs */
+        .name-inputs {
+            display: none; gap: 10px; justify-content: center; flex-wrap: wrap;
+            margin-bottom: 16px;
         }
-        .score-name { font-size: 0.8rem; color: var(--text-secondary); }
+        .name-inputs.show { display: flex; }
+        .name-input {
+            padding: 8px 14px; border-radius: 10px; border: 1.5px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary); font-size: 0.9rem;
+            font-family: inherit; width: 140px; text-align: center; outline: none;
+        }
+        .name-input:focus { border-color: var(--accent-1); }
+
+        .game-sub { font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 20px; min-height: 1.4em; }
+        .score-bar { display: flex; justify-content: center; gap: 18px; margin-bottom: 20px; flex-wrap: wrap; }
+        .score-box { background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 8px 18px; min-width: 80px; }
+        .score-name { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
         .score-num { font-size: 2rem; font-weight: 700; color: var(--accent-1); }
-        .choices {
-            display: flex; justify-content: center; gap: 16px;
-            margin-bottom: 28px; flex-wrap: wrap;
-        }
+        .choices { display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
         .choice-btn {
-            width: 110px; height: 110px; border-radius: 20px;
+            width: 108px; height: 108px; border-radius: 20px;
             border: 2px solid var(--border-color); background: var(--bg-card);
-            font-size: 3.5rem; cursor: pointer; transition: all 0.2s;
+            font-size: 3.2rem; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center;
             flex-direction: column; gap: 4px;
         }
         .choice-btn span.label { font-size: 0.75rem; color: var(--text-secondary); font-family: inherit; }
         .choice-btn:hover { transform: scale(1.08); border-color: var(--accent-1); box-shadow: 0 6px 20px var(--shadow-color); background: var(--bg-secondary); }
         .choice-btn:active { transform: scale(0.97); }
-        .arena {
-            display: flex; align-items: center; justify-content: center;
-            gap: 20px; margin-bottom: 22px; min-height: 100px;
-        }
+        .choice-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+        .arena { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; min-height: 96px; }
         .arena-side { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-        .arena-icon { font-size: 4rem; transition: all 0.3s; }
+        .arena-icon { font-size: 3.8rem; transition: all 0.3s; }
         .arena-icon.shake { animation: shake 0.4s; }
-        @keyframes shake {
-            0%,100% { transform: rotate(0); } 25% { transform: rotate(-15deg); }
-            75% { transform: rotate(15deg); }
-        }
-        .arena-label { font-size: 0.85rem; color: var(--text-secondary); }
+        @keyframes shake { 0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)} }
+        .arena-label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
         .arena-vs { font-size: 1.3rem; font-weight: 700; color: var(--text-secondary); }
-        .result-box {
-            min-height: 48px; border-radius: 12px; padding: 12px 20px;
-            font-size: 1.2rem; font-weight: 700; margin-bottom: 16px;
-            transition: all 0.3s;
-        }
-        .result-win { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
+        .result-box { min-height: 48px; border-radius: 12px; padding: 12px 16px; font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; transition: all 0.3s; }
+        .result-win  { background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; }
         .result-lose { background: #ffebee; color: #c62828; border: 1.5px solid #ef9a9a; }
-        .result-tie { background: var(--bg-secondary); color: var(--text-primary); border: 1.5px solid var(--border-color); }
-        .rounds-bar {
-            display: flex; justify-content: center; gap: 8px;
-            margin-bottom: 16px;
-        }
-        .round-dot {
-            width: 16px; height: 16px; border-radius: 50%;
-            border: 2px solid var(--border-color); background: var(--bg-secondary);
-        }
-        .round-dot.win { background: #4caf50; border-color: #4caf50; }
+        .result-tie  { background: var(--bg-secondary); color: var(--text-primary); border: 1.5px solid var(--border-color); }
+        .rounds-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+        .round-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border-color); background: var(--bg-secondary); }
+        .round-dot.win  { background: #4caf50; border-color: #4caf50; }
         .round-dot.lose { background: #f44336; border-color: #f44336; }
-        .round-dot.tie { background: #9e9e9e; border-color: #9e9e9e; }
-        .reset-btn {
-            padding: 10px 28px; border-radius: 10px; border: 1.5px solid var(--border-color);
-            background: var(--btn-active); color: white; font-size: 0.95rem; font-weight: 600;
-            cursor: pointer; font-family: inherit; transition: all 0.2s; display: none;
-        }
+        .round-dot.tie  { background: #9e9e9e; border-color: #9e9e9e; }
+        .reset-btn { padding: 10px 28px; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--btn-active); color: white; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; display: none; }
         .reset-btn:hover { opacity: 0.85; }
         .reset-btn.visible { display: inline-block; }
-        .final-msg { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
-        .back-btn {
-            display: inline-block; margin-top: 20px; padding: 9px 22px;
-            border-radius: 10px; background: var(--bg-secondary);
-            color: var(--text-primary); text-decoration: none;
-            border: 1.5px solid var(--border-color); font-size: 0.9rem;
-            transition: all 0.2s;
-        }
+        .final-msg { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+        .back-btn { display: inline-block; margin-top: 18px; padding: 9px 22px; border-radius: 10px; background: var(--bg-secondary); color: var(--text-primary); text-decoration: none; border: 1.5px solid var(--border-color); font-size: 0.9rem; transition: all 0.2s; }
         .back-btn:hover { background: var(--bg-card); border-color: var(--accent-1); }
+
+        /* Pass device overlay */
+        .pass-overlay {
+            display: none; position: fixed; inset: 0;
+            background: var(--modal-bg, #fff); z-index: 800;
+            align-items: center; justify-content: center; flex-direction: column;
+        }
+        .pass-overlay.show { display: flex; }
+        .pass-box { text-align: center; padding: 40px 32px; max-width: 340px; }
+        .pass-icon { font-size: 4rem; margin-bottom: 18px; }
+        .pass-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+        .pass-sub { font-size: 1rem; color: var(--text-secondary); margin-bottom: 28px; line-height: 1.5; }
+        .pass-btn {
+            padding: 13px 36px; border-radius: 14px; border: none;
+            background: var(--accent-1); color: white; font-size: 1.05rem;
+            font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+        }
+        .pass-btn:hover { opacity: 0.85; }
+
+        /* Countdown overlay */
+        .cnt-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.82); z-index: 900;
+            align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+        }
+        .cnt-overlay.show { display: flex; }
+        .cnt-num {
+            font-size: 9rem; font-weight: 900; color: white; line-height: 1;
+            animation: cntPulse 0.9s ease-in-out;
+        }
+        @keyframes cntPulse { 0%{transform:scale(1.4);opacity:0.4} 100%{transform:scale(1);opacity:1} }
+        .cnt-label { font-size: 1.1rem; color: rgba(255,255,255,0.7); letter-spacing: 1px; }
     </style>
 </head>
 <body class="theme-purple-pink">
@@ -106,23 +128,38 @@
 
     <div class="game-wrap">
         <h2 class="game-h">✂️ אבן, נייר, מספריים</h2>
-        <p class="game-sub">שחקי 5 סיבובים נגד המחשב — מי תנצח?</p>
 
+        <!-- Mode selector -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tabCpu" onclick="setMode('cpu')">🤖 נגד המחשב</button>
+            <button class="mode-tab" id="tabFriend" onclick="setMode('friend')">👥 נגד חבר/ה</button>
+        </div>
+
+        <!-- Name inputs (friend mode) -->
+        <div class="name-inputs" id="nameInputs">
+            <input class="name-input" id="name1" placeholder="שם שחקן 1" maxlength="12" oninput="updateLabels()">
+            <input class="name-input" id="name2" placeholder="שם שחקן 2" maxlength="12" oninput="updateLabels()">
+        </div>
+
+        <p class="game-sub" id="gameSub">שחקי 5 סיבובים נגד המחשב — מי תנצח?</p>
+
+        <!-- Scores -->
         <div class="score-bar">
             <div class="score-box">
-                <div class="score-name">את</div>
-                <div class="score-num" id="scorePlayer">0</div>
+                <div class="score-name" id="scoreName1">את</div>
+                <div class="score-num" id="scoreP1">0</div>
             </div>
             <div class="score-box">
                 <div class="score-name">תיקו</div>
                 <div class="score-num" id="scoreTie">0</div>
             </div>
             <div class="score-box">
-                <div class="score-name">מחשב</div>
-                <div class="score-num" id="scoreCPU">0</div>
+                <div class="score-name" id="scoreName2">מחשב</div>
+                <div class="score-num" id="scoreP2">0</div>
             </div>
         </div>
 
+        <!-- Round dots -->
         <div class="rounds-bar" id="roundsBar">
             <div class="round-dot" id="dot0"></div>
             <div class="round-dot" id="dot1"></div>
@@ -131,15 +168,16 @@
             <div class="round-dot" id="dot4"></div>
         </div>
 
+        <!-- Arena -->
         <div class="arena">
             <div class="arena-side">
-                <div class="arena-icon" id="playerIcon">❓</div>
-                <div class="arena-label">את</div>
+                <div class="arena-icon" id="icon1">❓</div>
+                <div class="arena-label" id="arenaLabel1">את</div>
             </div>
             <div class="arena-vs">VS</div>
             <div class="arena-side">
-                <div class="arena-icon" id="cpuIcon">❓</div>
-                <div class="arena-label">מחשב</div>
+                <div class="arena-icon" id="icon2">❓</div>
+                <div class="arena-label" id="arenaLabel2">מחשב</div>
             </div>
         </div>
 
@@ -157,8 +195,24 @@
         <a href="games.html" class="back-btn">← חזרה למשחקים</a>
     </div>
 
+    <!-- Pass device overlay -->
+    <div class="pass-overlay" id="passOverlay">
+        <div class="pass-box">
+            <div class="pass-icon">📱</div>
+            <div class="pass-title" id="passTitle">הבחירה נשמרה! ✅</div>
+            <div class="pass-sub" id="passSub">העבירי את המכשיר לשחקן 2<br>ואל תסתכלי!</div>
+            <button class="pass-btn" onclick="continueToP2()">✓ אני מוכנ/ה — אפשר!</button>
+        </div>
+    </div>
+
+    <!-- Countdown overlay -->
+    <div class="cnt-overlay" id="cntOverlay">
+        <div class="cnt-num" id="cntNum">3</div>
+        <div class="cnt-label">מתגלה עוד רגע...</div>
+    </div>
+
     <script>
-        // Theme
+        // ── Theme & decorations ─────────────────────────────────────────────
         (function() {
             const t = localStorage.getItem('selectedTheme') || 'theme-purple-pink';
             document.body.className = t;
@@ -174,100 +228,224 @@
             for (let i=0;i<18;i++){const e=document.createElement('div');e.className='bg-deco '+(i%2===0?'bg-cherry':'bg-bow');e.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(55+Math.random()*45)+'px;height:'+(55+Math.random()*45)+'px;opacity:'+(0.09+Math.random()*0.08)+';transform:rotate('+(Math.random()*360)+'deg)';e.innerHTML=i%2===0?'<svg viewBox="0 0 40 40"><circle cx="14" cy="28" r="9"/><circle cx="28" cy="24" r="9"/><path d="M14,19 Q18,5 22,8 Q26,5 28,15" stroke-width="2.5"/></svg>':'<svg viewBox="0 0 40 30"><path class="bow-wing" d="M20,15 Q5,3 5,15 Q5,27 20,15"/><path class="bow-wing" d="M20,15 Q35,3 35,15 Q35,27 20,15"/><circle class="bow-center" cx="20" cy="15" r="4"/></svg>';c.appendChild(e);}
         })();
 
-        const ICONS = { rock: '🪨', paper: '📄', scissors: '✂️' };
-        const NAMES = { rock: 'אבן', paper: 'נייר', scissors: 'מספריים' };
-        const CHOICES = ['rock', 'paper', 'scissors'];
+        // ── Constants ──────────────────────────────────────────────────────
+        const ICONS  = { rock:'🪨', paper:'📄', scissors:'✂️' };
+        const NAMES  = { rock:'אבן', paper:'נייר', scissors:'מספריים' };
+        const CHOICES = ['rock','paper','scissors'];
 
-        let scores = { player: 0, tie: 0, cpu: 0 };
+        // ── State ──────────────────────────────────────────────────────────
+        let mode = 'cpu';           // 'cpu' | 'friend'
+        let friendPhase = 'p1';     // 'p1' | 'p2'
+        let p1Choice = null;
+        let scores = {p1:0, tie:0, p2:0};
         let round = 0;
         let gameEnded = false;
 
-        function play(playerChoice) {
+        // ── Mode switching ─────────────────────────────────────────────────
+        function setMode(m) {
+            mode = m;
+            document.getElementById('tabCpu').classList.toggle('active', m === 'cpu');
+            document.getElementById('tabFriend').classList.toggle('active', m === 'friend');
+            document.getElementById('nameInputs').classList.toggle('show', m === 'friend');
+            updateLabels();
+            resetGame();
+        }
+
+        function getP1Name() { return document.getElementById('name1').value.trim() || 'שחקן 1'; }
+        function getP2Name() { return document.getElementById('name2').value.trim() || 'שחקן 2'; }
+
+        function updateLabels() {
+            if (mode === 'cpu') {
+                document.getElementById('scoreName1').textContent = 'את';
+                document.getElementById('scoreName2').textContent = 'מחשב';
+                document.getElementById('arenaLabel1').textContent = 'את';
+                document.getElementById('arenaLabel2').textContent = 'מחשב';
+                document.getElementById('gameSub').textContent = 'שחקי 5 סיבובים נגד המחשב — מי תנצח?';
+            } else {
+                const n1 = getP1Name(), n2 = getP2Name();
+                document.getElementById('scoreName1').textContent = n1;
+                document.getElementById('scoreName2').textContent = n2;
+                document.getElementById('arenaLabel1').textContent = n1;
+                document.getElementById('arenaLabel2').textContent = n2;
+                document.getElementById('gameSub').textContent = friendPhase === 'p1'
+                    ? `${n1} — בחרי! (${5-round} סיבובים נותרו)`
+                    : `${n2} — בחרי!`;
+            }
+        }
+
+        // ── Choices buttons enable/disable ─────────────────────────────────
+        function setChoicesEnabled(on) {
+            document.querySelectorAll('.choice-btn').forEach(b => b.disabled = !on);
+        }
+
+        // ── Main play entry point ──────────────────────────────────────────
+        function play(choice) {
             if (gameEnded) return;
+            if (mode === 'cpu') {
+                playCPU(choice);
+            } else {
+                playFriend(choice);
+            }
+        }
+
+        // ── CPU mode ───────────────────────────────────────────────────────
+        function playCPU(playerChoice) {
             const cpuChoice = CHOICES[Math.floor(Math.random() * 3)];
-            const playerIcon = document.getElementById('playerIcon');
-            const cpuIcon = document.getElementById('cpuIcon');
-
-            // Animate
-            playerIcon.classList.remove('shake'); cpuIcon.classList.remove('shake');
-            void playerIcon.offsetWidth;
-            playerIcon.classList.add('shake'); cpuIcon.classList.add('shake');
-
+            const i1 = document.getElementById('icon1'), i2 = document.getElementById('icon2');
+            i1.classList.remove('shake'); i2.classList.remove('shake');
+            void i1.offsetWidth;
+            i1.classList.add('shake'); i2.classList.add('shake');
+            setChoicesEnabled(false);
             setTimeout(() => {
-                playerIcon.textContent = ICONS[playerChoice];
-                cpuIcon.textContent = ICONS[cpuChoice];
-
-                const result = getResult(playerChoice, cpuChoice);
-                const rb = document.getElementById('resultBox');
-                rb.style.visibility = 'visible';
-
-                let dotClass;
-                if (result === 1) {
-                    scores.player++;
-                    rb.textContent = `ניצחת! ${NAMES[playerChoice]} מנצח ${NAMES[cpuChoice]} 🎉`;
-                    rb.className = 'result-box result-win';
-                    dotClass = 'win';
-                } else if (result === -1) {
-                    scores.cpu++;
-                    rb.textContent = `המחשב ניצח! ${NAMES[cpuChoice]} מנצח ${NAMES[playerChoice]} 😢`;
-                    rb.className = 'result-box result-lose';
-                    dotClass = 'lose';
-                } else {
-                    scores.tie++;
-                    rb.textContent = `תיקו! שניכן בחרתן ${NAMES[playerChoice]} 🤝`;
-                    rb.className = 'result-box result-tie';
-                    dotClass = 'tie';
-                }
-
-                document.getElementById(`dot${round}`).classList.add(dotClass);
-                round++;
-
-                document.getElementById('scorePlayer').textContent = scores.player;
-                document.getElementById('scoreTie').textContent = scores.tie;
-                document.getElementById('scoreCPU').textContent = scores.cpu;
-
-                if (round >= 5) endGame();
+                i1.textContent = ICONS[playerChoice];
+                i2.textContent = ICONS[cpuChoice];
+                resolveRound(playerChoice, cpuChoice);
+                if (!gameEnded) setChoicesEnabled(true);
             }, 400);
         }
 
-        function getResult(p, c) {
-            if (p === c) return 0;
-            if ((p==='rock'&&c==='scissors')||(p==='scissors'&&c==='paper')||(p==='paper'&&c==='rock')) return 1;
+        // ── Friend mode ────────────────────────────────────────────────────
+        function playFriend(choice) {
+            if (friendPhase === 'p1') {
+                p1Choice = choice;
+                setChoicesEnabled(false);
+                // Show pass overlay
+                const n2 = getP2Name();
+                document.getElementById('passSub').innerHTML =
+                    `העבירי את המכשיר ל<strong>${n2}</strong><br>ואל תסתכלי!`;
+                document.getElementById('passOverlay').classList.add('show');
+            } else {
+                // P2 chose
+                setChoicesEnabled(false);
+                startCountdown(p1Choice, choice);
+            }
+        }
+
+        function continueToP2() {
+            document.getElementById('passOverlay').classList.remove('show');
+            friendPhase = 'p2';
+            setChoicesEnabled(true);
+            // Reset icons to ? so P2 doesn't see P1's hint
+            document.getElementById('icon1').textContent = '❓';
+            document.getElementById('icon2').textContent = '❓';
+            updateLabels();
+        }
+
+        function startCountdown(c1, c2) {
+            const overlay = document.getElementById('cntOverlay');
+            const numEl   = document.getElementById('cntNum');
+            overlay.classList.add('show');
+            let n = 3;
+            numEl.textContent = n;
+            // Force reflow for animation on first tick
+            void numEl.offsetWidth;
+            const tick = setInterval(() => {
+                n--;
+                if (n <= 0) {
+                    clearInterval(tick);
+                    overlay.classList.remove('show');
+                    // Show both icons
+                    const i1 = document.getElementById('icon1'), i2 = document.getElementById('icon2');
+                    i1.classList.remove('shake'); i2.classList.remove('shake');
+                    void i1.offsetWidth;
+                    i1.classList.add('shake'); i2.classList.add('shake');
+                    i1.textContent = ICONS[c1];
+                    i2.textContent = ICONS[c2];
+                    resolveRound(c1, c2);
+                    if (!gameEnded) {
+                        friendPhase = 'p1';
+                        setTimeout(() => { setChoicesEnabled(true); updateLabels(); }, 1200);
+                    }
+                } else {
+                    numEl.textContent = n;
+                    numEl.style.animation = 'none';
+                    void numEl.offsetWidth;
+                    numEl.style.animation = 'cntPulse 0.9s ease-in-out';
+                }
+            }, 1000);
+        }
+
+        // ── Round resolution (shared by both modes) ────────────────────────
+        function resolveRound(c1, c2) {
+            const result = getResult(c1, c2); // 1=p1 wins, -1=p2/cpu wins, 0=tie
+            const rb = document.getElementById('resultBox');
+            rb.style.visibility = 'visible';
+            const n1 = mode === 'cpu' ? 'את' : getP1Name();
+            const n2 = mode === 'cpu' ? 'המחשב' : getP2Name();
+
+            let dotClass;
+            if (result === 1) {
+                scores.p1++;
+                rb.textContent = `${n1} ניצח! ${NAMES[c1]} מנצח ${NAMES[c2]} 🎉`;
+                rb.className = 'result-box result-win';
+                dotClass = 'win';
+            } else if (result === -1) {
+                scores.p2++;
+                rb.textContent = `${n2} ניצח! ${NAMES[c2]} מנצח ${NAMES[c1]} ${mode==='cpu'?'😢':'🎉'}`;
+                rb.className = 'result-box result-lose';
+                dotClass = 'lose';
+            } else {
+                scores.tie++;
+                rb.textContent = `תיקו! שניכן בחרו ${NAMES[c1]} 🤝`;
+                rb.className = 'result-box result-tie';
+                dotClass = 'tie';
+            }
+
+            document.getElementById(`dot${round}`).classList.add(dotClass);
+            round++;
+
+            document.getElementById('scoreP1').textContent  = scores.p1;
+            document.getElementById('scoreTie').textContent = scores.tie;
+            document.getElementById('scoreP2').textContent  = scores.p2;
+
+            if (round >= 5) setTimeout(endGame, 1000);
+        }
+
+        function getResult(c1, c2) {
+            if (c1 === c2) return 0;
+            if ((c1==='rock'&&c2==='scissors')||(c1==='scissors'&&c2==='paper')||(c1==='paper'&&c2==='rock')) return 1;
             return -1;
         }
 
         function endGame() {
             gameEnded = true;
-            document.getElementById('choicesArea').style.opacity = '0.4';
-            document.getElementById('choicesArea').style.pointerEvents = 'none';
+            setChoicesEnabled(false);
+            const n1 = mode === 'cpu' ? 'את' : getP1Name();
+            const n2 = mode === 'cpu' ? 'המחשב' : getP2Name();
             const fm = document.getElementById('finalMsg');
-            if (scores.player > scores.cpu) fm.textContent = '🏆 כל הכבוד! ניצחת את המחשב!';
-            else if (scores.cpu > scores.player) fm.textContent = '😅 המחשב ניצח הפעם... נסי שוב!';
-            else fm.textContent = '🤝 תיקו! היה קרוב!';
+            if (scores.p1 > scores.p2)
+                fm.textContent = `🏆 ${n1} ניצח! כל הכבוד!`;
+            else if (scores.p2 > scores.p1)
+                fm.textContent = mode === 'cpu' ? '😅 המחשב ניצח הפעם... נסי שוב!' : `🏆 ${n2} ניצח! כל הכבוד!`;
+            else
+                fm.textContent = '🤝 תיקו! היה קרוב!';
             document.getElementById('resetBtn').classList.add('visible');
         }
 
         function resetGame() {
-            scores = { player: 0, tie: 0, cpu: 0 };
-            round = 0; gameEnded = false;
-            document.getElementById('scorePlayer').textContent = '0';
+            scores = {p1:0, tie:0, p2:0};
+            round = 0; gameEnded = false; friendPhase = 'p1'; p1Choice = null;
+            document.getElementById('scoreP1').textContent  = '0';
             document.getElementById('scoreTie').textContent = '0';
-            document.getElementById('scoreCPU').textContent = '0';
-            document.getElementById('playerIcon').textContent = '❓';
-            document.getElementById('cpuIcon').textContent = '❓';
+            document.getElementById('scoreP2').textContent  = '0';
+            document.getElementById('icon1').textContent = '❓';
+            document.getElementById('icon2').textContent = '❓';
             document.getElementById('resultBox').style.visibility = 'hidden';
             document.getElementById('finalMsg').textContent = '';
             document.getElementById('resetBtn').classList.remove('visible');
-            document.getElementById('choicesArea').style.opacity = '1';
-            document.getElementById('choicesArea').style.pointerEvents = '';
             ['dot0','dot1','dot2','dot3','dot4'].forEach(id => {
                 document.getElementById(id).className = 'round-dot';
             });
+            setChoicesEnabled(true);
+            updateLabels();
         }
 
+        // ── Init ──────────────────────────────────────────────────────────
         document.querySelectorAll('.choice-btn').forEach(btn => {
             btn.addEventListener('click', () => play(btn.dataset.v));
         });
+        updateLabels();
     </script>
+    <script src="a11y.js"></script>
 </body>
 </html>
