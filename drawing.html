@@ -124,13 +124,13 @@
             <a href="games.html" class="nav-link">משחקים</a>
             <a href="drawing.html" class="nav-link active">ציור</a>
         </nav>
-        <header class="site-header" style="padding: 10px 20px;">
+        <header class="site-header">
             <div class="header-content">
-                <img src="logos/logo.png" alt="עולם של כייף" class="logo" style="width:36px;height:36px;">
-                <h1 class="site-title" style="font-size:1.2rem;">עולם הציור</h1>
+                <img src="logos/logo.png" alt="עולם של כייף" class="logo">
+                <h1 class="site-title">עולם הציור</h1>
             </div>
             <div class="theme-switcher">
-                <span class="theme-label">צבעים:</span>
+                <span class="theme-label">בחרי ערכת צבעים:</span>
                 <button class="theme-btn theme-btn-purple" data-theme="theme-purple-pink" title="סגול וורוד"><span class="color-dot purple"></span><span class="color-dot pink"></span></button>
                 <button class="theme-btn theme-btn-bw" data-theme="theme-black-white" title="שחור ולבן"><span class="color-dot black"></span><span class="color-dot white"></span></button>
                 <button class="theme-btn theme-btn-yellow" data-theme="theme-yellow-green" title="צהוב וירוק"><span class="color-dot yellow"></span><span class="color-dot green"></span></button>
@@ -358,6 +358,7 @@ function onDown(e) {
     startX=x; startY=y; lastX=x; lastY=y; isDrawing=true;
 
     if (tool === 'text') {
+        e.preventDefault(); // prevent browser from stealing focus away from textarea
         if (textEl) finishText(); // commit existing text on canvas click
         else startTextInput(x, y);
         return;
@@ -460,11 +461,11 @@ function startTextInput(x, y) {
     el.style.color     = color;
     el.style.direction = 'rtl';
     document.body.appendChild(el);
-    el.focus();
-    textEl = {el, x, y};
+    textEl = {el, x, y}; // set before focus so re-entry guard in finishText works
     el.addEventListener('blur', finishText);
     el.addEventListener('input', () => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; });
     el.addEventListener('keydown', ev => { if (ev.key === 'Escape') { textEl = null; el.remove(); } });
+    setTimeout(() => el.focus(), 0); // defer focus until after mousedown/mouseup processing
 }
 
 function finishText() {
