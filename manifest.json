@@ -1,0 +1,28 @@
+{
+  "name": "עולם של כייף",
+  "short_name": "עולם של כייף",
+  "description": "גלריית תמונות - מנגה, נוף, חיות, מאכלים וציור",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf5fc",
+  "theme_color": "#7b2d8e",
+  "lang": "he",
+  "dir": "rtl",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "logos/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logos/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["photo", "entertainment"]
+}

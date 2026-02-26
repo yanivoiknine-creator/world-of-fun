@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>עולם של כייף</title>
     <link rel="icon" href="logos/logo.png" type="image/png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7b2d8e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="עולם של כייף">
+    <link rel="apple-touch-icon" href="logos/icon-192.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-purple-pink">
@@ -519,5 +525,12 @@
 
     <script src="script.js"></script>
     <script src="a11y.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js');
+            });
+        }
+    </script>
 </body>
 </html>
